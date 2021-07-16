@@ -10,15 +10,22 @@ import (
 	"strconv"
 )
 
+var db *DB.DB
+
 func initHandlers(router *gin.Engine) {
+	var err error
+	db, err = DB.Init("testDB.db")
+	if err != nil {
+		panic(err)
+	}
 	router.GET("/", func(ctx *gin.Context) { ctx.JSON(200, gin.H{"Status": "It is working"}) })
 	router.POST("/products", addProduct)
 	router.GET("/products/:SKU", getProductWithURL)
 	router.GET("/products", getProductWithParam)
 	router.DELETE("/products/:SKU", deleteProductWithURL)
 	router.DELETE("/products", deleteProductWithParam)
-	router.PUT("/products/:SKU", replaceProductWithURL)
-	router.PUT("/products", replaceProductWithParam)
+	router.PUT("/products/:SKU", updateProductWithURL)
+	router.PUT("/products", updateProductWithParam)
 }
 
 // TODO: Check if request body signature is matches with models.InputProduct
@@ -34,16 +41,16 @@ func addProduct(ctx *gin.Context) {
 
 	}
 
-	if err = DB.AddProduct(*newProduct); err == nil {
+	if product, err := db.AddProduct(*newProduct); err == nil {
 		ctx.JSON(http.StatusOK, gin.H{})
 	} else {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "product": product})
 	}
 }
 
 func getProductWithURL(ctx *gin.Context) {
 	SKU := ctx.Param("SKU")
-	foundProduct, err := DB.GetProductBySKU(SKU)
+	foundProduct, err := db.GetProductBySKU(SKU)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err})
 	} else {
@@ -56,7 +63,7 @@ func getProductWithParam(ctx *gin.Context) {
 	var errMsg string
 	code := http.StatusOK
 	if prSKU, ok := ctx.GetQuery("sku"); ok {
-		if foundProduct, err := DB.GetProductBySKU(prSKU); err == nil {
+		if foundProduct, err := db.GetProductBySKU(prSKU); err == nil {
 			jsonData, _ = json.Marshal(foundProduct)
 		} else {
 			errMsg = err.Error()
@@ -67,12 +74,12 @@ func getProductWithParam(ctx *gin.Context) {
 			}
 		}
 	} else if prIdStr, ok := ctx.GetQuery("id"); ok {
-		prId, err := strconv.ParseUint(prIdStr, 10, 64)
+		prId, err := strconv.ParseInt(prIdStr, 10, 64)
 		if err != nil {
 			errMsg = err.Error()
 			code = http.StatusBadRequest
 		} else {
-			if foundProduct, err := DB.GetProductByID(prId); err == nil {
+			if foundProduct, err := db.GetProductByID(prId); err == nil {
 				jsonData, _ = json.Marshal(foundProduct)
 			} else {
 				errMsg = err.Error()
@@ -85,7 +92,13 @@ func getProductWithParam(ctx *gin.Context) {
 
 		}
 	} else {
-		jsonData, _ = json.Marshal(DB.GetAllProducts())
+		products, err := db.GetAllProducts()
+		if err != nil {
+			errMsg = err.Error()
+			code = http.StatusInternalServerError
+		} else {
+			jsonData, _ = json.Marshal(products)
+		}
 	}
 
 	if errMsg == "" {
@@ -98,7 +111,7 @@ func getProductWithParam(ctx *gin.Context) {
 
 func deleteProductWithURL(ctx *gin.Context) {
 	SKU := ctx.Param("SKU")
-	if err := DB.DeleteProductBySKU(SKU); err == nil {
+	if err := db.DeleteProductBySKU(SKU); err == nil {
 		ctx.JSON(http.StatusOK, gin.H{})
 	} else {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err})
@@ -109,7 +122,7 @@ func deleteProductWithParam(ctx *gin.Context) {
 	var errMsg string
 	code := http.StatusOK
 	if prSKU, ok := ctx.GetQuery("sku"); ok {
-		if err := DB.DeleteProductBySKU(prSKU); err != nil {
+		if err := db.DeleteProductBySKU(prSKU); err != nil {
 			errMsg = err.Error()
 			if err == DB.ProductNotFoundError {
 				code = http.StatusNotFound
@@ -118,11 +131,11 @@ func deleteProductWithParam(ctx *gin.Context) {
 			}
 		}
 	} else if prIdStr, ok := ctx.GetQuery("id"); ok {
-		prId, err := strconv.ParseUint(prIdStr, 10, 64)
+		prId, err := strconv.ParseInt(prIdStr, 10, 64)
 		if err != nil {
 			errMsg = err.Error()
 			code = http.StatusBadRequest
-		} else if err := DB.DeleteProductByID(prId); err != nil {
+		} else if err := db.DeleteProductByID(prId); err != nil {
 			errMsg = err.Error()
 			if err == DB.ProductNotFoundError {
 				code = http.StatusNotFound
@@ -142,7 +155,7 @@ func deleteProductWithParam(ctx *gin.Context) {
 	}
 }
 
-func replaceProductWithURL(ctx *gin.Context) {
+func updateProductWithURL(ctx *gin.Context) {
 	// TODO: More informative message about unmarshal error
 	SKU := ctx.Param("SKU")
 	newProduct := models.EmptyInputProduct()
@@ -152,7 +165,7 @@ func replaceProductWithURL(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
-	if err := DB.ReplaceProductBySKU(SKU, *newProduct); err == nil {
+	if err := db.UpdateProductBySKU(SKU, *newProduct); err == nil {
 		ctx.JSON(http.StatusOK, gin.H{})
 	} else if err == DB.ProductNotFoundError {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err})
@@ -161,7 +174,7 @@ func replaceProductWithURL(ctx *gin.Context) {
 	}
 }
 
-func replaceProductWithParam(ctx *gin.Context) {
+func updateProductWithParam(ctx *gin.Context) {
 	// TODO: More informative message about unmarshal error
 	newProduct := models.EmptyInputProduct()
 	bodyData, _ := ioutil.ReadAll(ctx.Request.Body)
@@ -174,7 +187,7 @@ func replaceProductWithParam(ctx *gin.Context) {
 	var errMsg string
 	code := http.StatusOK
 	if prSKU, ok := ctx.GetQuery("sku"); ok {
-		if err := DB.ReplaceProductBySKU(prSKU, *newProduct); err != nil {
+		if err := db.UpdateProductBySKU(prSKU, *newProduct); err != nil {
 			errMsg = err.Error()
 			if err == DB.ProductNotFoundError {
 				code = http.StatusNotFound
@@ -183,11 +196,11 @@ func replaceProductWithParam(ctx *gin.Context) {
 			}
 		}
 	} else if prIdStr, ok := ctx.GetQuery("id"); ok {
-		prId, err := strconv.ParseUint(prIdStr, 10, 64)
+		prId, err := strconv.ParseInt(prIdStr, 10, 64)
 		if err != nil {
 			errMsg = err.Error()
 			code = http.StatusBadRequest
-		} else if err := DB.ReplaceProductByID(prId, *newProduct); err != nil {
+		} else if err := db.UpdateProductById(prId, *newProduct); err != nil {
 			errMsg = err.Error()
 			if err == DB.ProductNotFoundError {
 				code = http.StatusNotFound
