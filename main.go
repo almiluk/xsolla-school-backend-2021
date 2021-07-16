@@ -1,11 +1,24 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"XollaSchoolBE/productServer"
+	"context"
+	"log"
+	"os"
+	"os/signal"
 )
 
 func main() {
-	router := gin.Default()
-	initHandlers(router)
-	router.Run()
+	srv, err := productServer.Run(":8080", "products.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	quit := make(chan os.Signal)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+	log.Println("Shutdown Server ...")
+	if err := srv.Shutdown(context.Background()); err != nil {
+		log.Fatal("Server Shutdown:", err)
+	}
+	log.Println("Server exiting")
 }

@@ -1,12 +1,12 @@
-package main
+package productServer
 
 import (
 	"XollaSchoolBE/DB"
 	"XollaSchoolBE/models"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io"
 	"io/ioutil"
 	"log"
@@ -31,15 +31,18 @@ var testProducts = []models.InputProduct{
 }
 
 func TestMain(m *testing.M) {
+	srv, err := Run(":8080", "testDB.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	m.Run()
+	if err := srv.Shutdown(context.Background()); err != nil {
+		log.Fatal("Server Shutdown:", err)
+	}
+	log.Println("The end of server tests")
 	if err := os.Remove("testDB.db"); err != nil {
 		log.Println("Warning: ", err.Error())
 	}
-	go func() {
-		router := gin.Default()
-		initHandlers(router)
-		log.Fatal(router.Run("localhost:8080"))
-	}()
-	m.Run()
 }
 
 func TestCorrectPost(t *testing.T) {
@@ -57,12 +60,13 @@ func TestCorrectPost(t *testing.T) {
 			"application/json",
 			bytes.NewBuffer(jsonProduct))
 		if err != nil {
-			t.Fatal(err)
+			t.Error(err)
+			continue
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
 			bodyStr, _ := ioutil.ReadAll(resp.Body)
-			t.Fatal(fmt.Sprintf("\nBad status code: %d\nResponse body: %s\n", resp.StatusCode, bodyStr))
+			t.Error(fmt.Sprintf("\nBad status code: %d\nResponse body: %s\n", resp.StatusCode, bodyStr))
 		}
 	}
 }
@@ -74,20 +78,20 @@ func TestIncorrectPost(t *testing.T) {
 		"application/json",
 		bytes.NewBuffer(jsonProduct),
 	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("not 400 code for incorrect post request")
-	}
-	respData := make(map[string]interface{})
-	if err = json.NewDecoder(resp.Body).Decode(&respData); err != nil {
-		t.Fatal("response format error, response ", fmt.Sprint(resp.Body))
-	} else if errMsg, ok := respData["error"]; !ok {
-		t.Fatal("no error filed in the response, response: ", respData)
-	} else if !strings.HasPrefix(errMsg.(string), "json format error") {
-		t.Fatal("wrong error message: ", errMsg)
+	if err == nil {
+		defer resp.Body.Close()
+		respData := make(map[string]interface{})
+		if resp.StatusCode != http.StatusBadRequest {
+			t.Error("not 400 code for incorrect post request")
+		} else if err = json.NewDecoder(resp.Body).Decode(&respData); err != nil {
+			t.Error("response format error, response ", fmt.Sprint(resp.Body))
+		} else if errMsg, ok := respData["error"]; !ok {
+			t.Error("no error filed in the response, response: ", respData)
+		} else if !strings.HasPrefix(errMsg.(string), "json format error") {
+			t.Error("wrong error message: ", errMsg)
+		}
+	} else {
+		t.Error(err)
 	}
 
 	jsonProduct, _ = json.Marshal(testProducts[0])
@@ -96,19 +100,19 @@ func TestIncorrectPost(t *testing.T) {
 		"application/json",
 		bytes.NewBuffer(jsonProduct))
 	if err != nil {
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("not 400 code for incorrect post request")
-	}
-	respData = make(map[string]interface{})
-	if err = json.NewDecoder(resp.Body).Decode(&respData); err != nil {
-		t.Fatal("response format error, response ", fmt.Sprint(resp.Body))
-	} else if errMsg, ok := respData["error"]; !ok {
-		t.Fatal("no error filed in the response, response: ", respData)
-	} else if errMsg != DB.ProductAlreadyExistsError.Error() {
-		t.Fatal("wrong error message: ", errMsg)
+		t.Error(err)
+	} else {
+		defer resp.Body.Close()
+		respData := make(map[string]interface{})
+		if resp.StatusCode != http.StatusBadRequest {
+			t.Error("not 400 code for incorrect post request")
+		} else if err = json.NewDecoder(resp.Body).Decode(&respData); err != nil {
+			t.Error("response format error, response ", fmt.Sprint(resp.Body))
+		} else if errMsg, ok := respData["error"]; !ok {
+			t.Error("no error filed in the response, response: ", respData)
+		} else if errMsg != DB.ProductAlreadyExistsError.Error() {
+			t.Error("wrong error message: ", errMsg)
+		}
 	}
 }
 
@@ -145,9 +149,9 @@ func TestCorrectGet(t *testing.T) {
 	} {
 		prodPtr, err, _ := getProductFromURL(url)
 		if err != nil {
-			t.Fatal(err)
+			t.Error(err)
 		} else if prodPtr.InputProduct != testProducts[0] {
-			t.Fatalf("received product is not equal the sent one:\nreceived product: %v\nsent product: %v", prodPtr, testProducts[0])
+			t.Errorf("received product is not equal the sent one:\nreceived product: %v\nsent product: %v", prodPtr, testProducts[0])
 		}
 	}
 }
@@ -160,13 +164,13 @@ func TestIncorrectGet(t *testing.T) {
 	} {
 		_, _, code := getProductFromURL(url)
 		if code != http.StatusNotFound {
-			t.Fatalf("not 404 code for nonexistent product, code: %d", code)
+			t.Errorf("not 404 code for nonexistent product, code: %d", code)
 		}
 	}
 
 	_, _, code := getProductFromURL("http://localhost:8080/products?id=WRONG")
 	if code != http.StatusBadRequest {
-		t.Fatalf("not 400 code for nondigital product id, code: %d", code)
+		t.Errorf("not 400 code for nondigital product id, code: %d", code)
 	}
 }
 
@@ -188,13 +192,18 @@ func TestCorrectDelete(t *testing.T) {
 			t.Fatal(err)
 		}
 		if resp, err := client.Do(request); err != nil {
-			t.Fatal(err)
-		} else if resp.StatusCode != http.StatusOK {
-			t.Fatal("Bad status code: ", resp.StatusCode)
+			t.Error(err)
+			continue
+		} else {
+			if resp.StatusCode != http.StatusOK {
+				t.Error("Bad status code: ", resp.StatusCode)
+				continue
+			}
+			resp.Body.Close()
 		}
 
 		if _, _, code := getProductFromURL(url); code != http.StatusNotFound {
-			t.Fatal("deleted product has been found")
+			t.Error("deleted product has been found")
 		}
 	}
 }
@@ -210,25 +219,29 @@ func TestIncorrectDelete(t *testing.T) {
 	for _, url := range requestingURLs {
 		request, err := http.NewRequest(http.MethodDelete, url, nil)
 		if err != nil {
-			t.Fatal(err)
+			t.Error(err)
+			continue
 		}
 		if resp, err := client.Do(request); err != nil {
-			t.Fatal(err)
-		} else if resp.StatusCode != http.StatusNotFound {
+			t.Error(err)
+		} else {
+			if resp.StatusCode != http.StatusNotFound {
+				t.Errorf("not 400 code for nondigital product id, code: %d", resp.StatusCode)
+			}
 			resp.Body.Close()
-			t.Fatalf("not 400 code for nondigital product id, code: %d", resp.StatusCode)
 		}
 	}
 
 	request, err := http.NewRequest(http.MethodDelete, "http://localhost:8080/products?id=WRONG", nil)
 	if err != nil {
-		t.Fatal(err)
-	}
-	if resp, err := client.Do(request); err != nil {
-		t.Fatal(err)
-	} else if resp.StatusCode != http.StatusBadRequest {
-		resp.Body.Close()
-		t.Fatalf("not 404 code for nonexistent product, code: %d", resp.StatusCode)
+		t.Error(err)
+	} else if resp, err := client.Do(request); err != nil {
+		t.Error(err)
+	} else {
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusBadRequest {
+			t.Errorf("not 404 code for nonexistent product, code: %d", resp.StatusCode)
+		}
 	}
 }
 
@@ -246,27 +259,32 @@ func TestCorrectUpdate(t *testing.T) {
 	client := &http.Client{}
 	for i, url := range requestingURLs {
 		if _, err, _ := getProductFromURL(url); err != nil {
-			t.Fatal(err)
+			t.Error(err)
+			continue
 		}
 
 		newProduct := models.InputProduct{"NewSKU" + strconv.Itoa(i), "NewName", "NewType", uint(100 + i)}
 		jsonProduct, _ := json.Marshal(newProduct)
 		request, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(jsonProduct))
 		if err != nil {
-			t.Fatal(err)
+			t.Error(err)
+			continue
 		}
 		if resp, err := client.Do(request); err != nil {
-			t.Fatal(err)
-		} else if resp.StatusCode != http.StatusOK {
-			t.Fatal("Bad status code: ", resp.StatusCode)
+			t.Error(err)
+		} else {
+			if resp.StatusCode != http.StatusOK {
+				t.Fatal("Bad status code: ", resp.StatusCode)
+			}
+			resp.Body.Close()
 		}
 
 		if prod, err, code := getProductFromURL(checkURLs[i]); err != nil {
-			t.Fatal(err)
+			t.Error(err)
 		} else if code != http.StatusOK {
-			t.Fatal("Bad status code: ", code)
+			t.Error("Bad status code: ", code)
 		} else if prod.InputProduct != newProduct {
-			t.Fatalf("Updated product mismatch:\nSend product: %v\nReceived product: %v", newProduct, prod.InputProduct)
+			t.Errorf("Updated product mismatch:\nSend product: %v\nReceived product: %v", newProduct, prod.InputProduct)
 		}
 	}
 }
