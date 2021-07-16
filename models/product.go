@@ -2,10 +2,10 @@ package models
 
 type Product struct {
 	InputProduct
-	Id uint64
+	Id int64
 }
 
-func NewProduct(SKU string, Name string, Type string, Cost uint, id uint64) *Product {
+func NewProduct(SKU string, Name string, Type string, Cost uint, id int64) *Product {
 	return &Product{InputProduct{SKU, Name, Type, Cost}, id}
 }
 
