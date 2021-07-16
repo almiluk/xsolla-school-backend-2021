@@ -11,6 +11,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -29,6 +31,9 @@ var testProducts = []models.InputProduct{
 }
 
 func TestMain(m *testing.M) {
+	if err := os.Remove("testDB.db"); err != nil {
+		log.Println("Warning: ", err.Error())
+	}
 	go func() {
 		router := gin.Default()
 		initHandlers(router)
@@ -76,12 +81,12 @@ func TestIncorrectPost(t *testing.T) {
 	if resp.StatusCode != http.StatusBadRequest {
 		t.Fatal("not 400 code for incorrect post request")
 	}
-	respData := make(map[string]string)
+	respData := make(map[string]interface{})
 	if err = json.NewDecoder(resp.Body).Decode(&respData); err != nil {
 		t.Fatal("response format error, response ", fmt.Sprint(resp.Body))
 	} else if errMsg, ok := respData["error"]; !ok {
 		t.Fatal("no error filed in the response, response: ", respData)
-	} else if !strings.HasPrefix(errMsg, "json format error") {
+	} else if !strings.HasPrefix(errMsg.(string), "json format error") {
 		t.Fatal("wrong error message: ", errMsg)
 	}
 
@@ -97,7 +102,7 @@ func TestIncorrectPost(t *testing.T) {
 	if resp.StatusCode != http.StatusBadRequest {
 		t.Fatal("not 400 code for incorrect post request")
 	}
-	respData = make(map[string]string)
+	respData = make(map[string]interface{})
 	if err = json.NewDecoder(resp.Body).Decode(&respData); err != nil {
 		t.Fatal("response format error, response ", fmt.Sprint(resp.Body))
 	} else if errMsg, ok := respData["error"]; !ok {
@@ -136,7 +141,7 @@ func TestCorrectGet(t *testing.T) {
 	for _, url := range []string{
 		"http://localhost:8080/products/" + testProducts[0].SKU,
 		"http://localhost:8080/products?sku=" + testProducts[0].SKU,
-		"http://localhost:8080/products?id=0",
+		"http://localhost:8080/products?id=1",
 	} {
 		prodPtr, err, _ := getProductFromURL(url)
 		if err != nil {
@@ -169,7 +174,7 @@ func TestCorrectDelete(t *testing.T) {
 	requestingURLs := []string{
 		"http://localhost:8080/products/" + testProducts[0].SKU,
 		"http://localhost:8080/products?sku=" + testProducts[1].SKU,
-		"http://localhost:8080/products?id=2",
+		"http://localhost:8080/products?id=3",
 	}
 	client := &http.Client{}
 
@@ -182,8 +187,10 @@ func TestCorrectDelete(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if _, err = client.Do(request); err != nil {
+		if resp, err := client.Do(request); err != nil {
 			t.Fatal(err)
+		} else if resp.StatusCode != http.StatusOK {
+			t.Fatal("Bad status code: ", resp.StatusCode)
 		}
 
 		if _, _, code := getProductFromURL(url); code != http.StatusNotFound {
@@ -222,6 +229,45 @@ func TestIncorrectDelete(t *testing.T) {
 	} else if resp.StatusCode != http.StatusBadRequest {
 		resp.Body.Close()
 		t.Fatalf("not 404 code for nonexistent product, code: %d", resp.StatusCode)
+	}
+}
+
+func TestCorrectUpdate(t *testing.T) {
+	requestingURLs := []string{
+		"http://localhost:8080/products/" + testProducts[3].SKU,
+		"http://localhost:8080/products?sku=" + testProducts[4].SKU,
+		"http://localhost:8080/products?id=6",
+	}
+	checkURLs := []string{
+		"http://localhost:8080/products/NewSKU0",
+		"http://localhost:8080/products?sku=NewSKU1",
+		"http://localhost:8080/products?id=6",
+	}
+	client := &http.Client{}
+	for i, url := range requestingURLs {
+		if _, err, _ := getProductFromURL(url); err != nil {
+			t.Fatal(err)
+		}
+
+		newProduct := models.InputProduct{"NewSKU" + strconv.Itoa(i), "NewName", "NewType", uint(100 + i)}
+		jsonProduct, _ := json.Marshal(newProduct)
+		request, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(jsonProduct))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resp, err := client.Do(request); err != nil {
+			t.Fatal(err)
+		} else if resp.StatusCode != http.StatusOK {
+			t.Fatal("Bad status code: ", resp.StatusCode)
+		}
+
+		if prod, err, code := getProductFromURL(checkURLs[i]); err != nil {
+			t.Fatal(err)
+		} else if code != http.StatusOK {
+			t.Fatal("Bad status code: ", code)
+		} else if prod.InputProduct != newProduct {
+			t.Fatalf("Updated product mismatch:\nSend product: %v\nReceived product: %v", newProduct, prod.InputProduct)
+		}
 	}
 }
 
