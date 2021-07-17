@@ -34,7 +34,7 @@ func (srv *ProductServer) getProductWithURL(ctx *gin.Context) {
 	SKU := ctx.Param("SKU")
 	foundProduct, err := srv.db.GetProductBySKU(SKU)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": err})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 	} else {
 		ctx.JSON(http.StatusOK, foundProduct)
 	}
@@ -96,7 +96,7 @@ func (srv *ProductServer) deleteProductWithURL(ctx *gin.Context) {
 	if err := srv.db.DeleteProductBySKU(SKU); err == nil {
 		ctx.JSON(http.StatusOK, gin.H{})
 	} else {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": err})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 	}
 }
 
@@ -144,7 +144,7 @@ func (srv *ProductServer) updateProductWithURL(ctx *gin.Context) {
 	bodyData, _ := ioutil.ReadAll(ctx.Request.Body)
 	err := json.Unmarshal(bodyData, newProduct)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	if err := srv.db.UpdateProductBySKU(SKU, *newProduct); err == nil {
