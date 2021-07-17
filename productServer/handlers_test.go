@@ -170,7 +170,7 @@ func TestIncorrectGet(t *testing.T) {
 
 	_, _, code := getProductFromURL("http://localhost:8080/products?id=WRONG")
 	if code != http.StatusBadRequest {
-		t.Errorf("not 400 code for nondigital product id, code: %d", code)
+		t.Errorf("not 400 code for nondigital product id: %d", code)
 	}
 }
 
@@ -226,7 +226,7 @@ func TestIncorrectDelete(t *testing.T) {
 			t.Error(err)
 		} else {
 			if resp.StatusCode != http.StatusNotFound {
-				t.Errorf("not 400 code for nondigital product id, code: %d", resp.StatusCode)
+				t.Errorf("not 400 code for nondigital product id: %d", resp.StatusCode)
 			}
 			resp.Body.Close()
 		}
@@ -240,7 +240,7 @@ func TestIncorrectDelete(t *testing.T) {
 	} else {
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusBadRequest {
-			t.Errorf("not 404 code for nonexistent product, code: %d", resp.StatusCode)
+			t.Errorf("not 404 code for nonexistent product: %d", resp.StatusCode)
 		}
 	}
 }
@@ -274,7 +274,7 @@ func TestCorrectUpdate(t *testing.T) {
 			t.Error(err)
 		} else {
 			if resp.StatusCode != http.StatusOK {
-				t.Fatal("Bad status code: ", resp.StatusCode)
+				t.Error("Bad status code: ", resp.StatusCode)
 			}
 			resp.Body.Close()
 		}
@@ -286,6 +286,63 @@ func TestCorrectUpdate(t *testing.T) {
 		} else if prod.InputProduct != newProduct {
 			t.Errorf("Updated product mismatch:\nSend product: %v\nReceived product: %v", newProduct, prod.InputProduct)
 		}
+	}
+}
+
+func TestIncorrectUpdate(t *testing.T) {
+	requestingURLs := []string{
+		"http://localhost:8080/products/WRONG",
+		"http://localhost:8080/products?sku=WRONG",
+		"http://localhost:8080/products?id=9999",
+	}
+	client := &http.Client{}
+	for i, url := range requestingURLs {
+		newProduct := models.InputProduct{"NewSKU" + strconv.Itoa(i), "NewName", "NewType", uint(100 + i)}
+		jsonProduct, _ := json.Marshal(newProduct)
+		request, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(jsonProduct))
+		if err != nil {
+			t.Error(err)
+			continue
+		}
+		if resp, err := client.Do(request); err != nil {
+			t.Error(err)
+		} else {
+			if resp.StatusCode != http.StatusNotFound {
+				t.Error("not 404 code for nonexistent product: ", resp.StatusCode)
+			}
+			resp.Body.Close()
+		}
+	}
+	testProductJson, _ := json.Marshal(testProducts[7])
+
+	request, err := http.NewRequest(http.MethodPut, "http://localhost:8080/products?id=WRONG", bytes.NewBuffer(testProductJson))
+	if err != nil {
+		t.Error(err)
+	} else if resp, err := client.Do(request); err != nil {
+		t.Error(err)
+	} else {
+		if resp.StatusCode != http.StatusBadRequest {
+			t.Errorf("not 404 code for nonexistent product: %d", resp.StatusCode)
+		}
+		resp.Body.Close()
+	}
+	request, err = http.NewRequest(http.MethodPut, "http://localhost:8080/products/"+testProducts[8].SKU, bytes.NewBuffer(testProductJson))
+	if err != nil {
+		t.Error(err)
+	} else if resp, err := client.Do(request); err != nil {
+		t.Error(err)
+	} else {
+		respData := make(map[string]interface{})
+		if resp.StatusCode != http.StatusBadRequest {
+			t.Error("not 400 code for incorrect put request: ", resp.StatusCode)
+		} else if err = json.NewDecoder(resp.Body).Decode(&respData); err != nil {
+			t.Error("response format error, response ", fmt.Sprint(resp.Body))
+		} else if errMsg, ok := respData["error"]; !ok {
+			t.Error("no error filed in the response, response: ", respData)
+		} else if errMsg != DB.ProductAlreadyExistsError.Error() {
+			t.Error("wrong error message: ", errMsg)
+		}
+		resp.Body.Close()
 	}
 }
 
