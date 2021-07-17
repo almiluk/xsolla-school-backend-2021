@@ -150,9 +150,11 @@ func (srv *ProductServer) updateProductWithURL(ctx *gin.Context) {
 	if err := srv.db.UpdateProductBySKU(SKU, *newProduct); err == nil {
 		ctx.JSON(http.StatusOK, gin.H{})
 	} else if err == DB.ProductNotFoundError {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": err})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+	} else if err == DB.ProductAlreadyExistsError {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	} else {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 }
 
