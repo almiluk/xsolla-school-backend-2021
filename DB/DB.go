@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/mattn/go-sqlite3"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -134,6 +135,10 @@ func (db *DB) UpdateProductBySKU(SKU string, inputProd models.InputProduct) erro
 		return err
 	}
 	_, err = db.Exec(sqlQueries["updateProductBySKU"], inputProd.SKU, inputProd.Name, inputProd.Type, inputProd.Cost, SKU)
+	if sqlErr, ok := err.(sqlite3.Error); ok && sqlErr.ExtendedCode == 2067 {
+		// Error code 2067 means UNIQUE constraint failed (https://www.sqlite.org/rescode.html#constraint_unique)
+		return ProductAlreadyExistsError
+	}
 	return err
 }
 
@@ -143,5 +148,9 @@ func (db *DB) UpdateProductById(id int64, inputProd models.InputProduct) error {
 		return err
 	}
 	_, err = db.Exec(sqlQueries["updateProductById"], inputProd.SKU, inputProd.Name, inputProd.Type, inputProd.Cost, id)
+	if sqlErr, ok := err.(sqlite3.Error); ok && sqlErr.ExtendedCode == 2067 {
+		// Error code 2067 means UNIQUE constraint failed (https://www.sqlite.org/rescode.html#constraint_unique)
+		return ProductAlreadyExistsError
+	}
 	return err
 }
