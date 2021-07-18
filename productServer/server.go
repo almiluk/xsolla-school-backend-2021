@@ -1,7 +1,7 @@
 package productServer
 
 import (
-	"XollaSchoolBE/DB"
+	"XsollaSchoolBE/DB"
 	"context"
 	"github.com/gin-gonic/gin"
 	"log"

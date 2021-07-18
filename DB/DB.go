@@ -1,7 +1,7 @@
 package DB
 
 import (
-	"XollaSchoolBE/models"
+	"XsollaSchoolBE/models"
 	"database/sql"
 	"errors"
 	"fmt"

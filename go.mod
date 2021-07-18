@@ -1,4 +1,4 @@
-module XollaSchoolBE
+module XsollaSchoolBE
 
 go 1.15
 

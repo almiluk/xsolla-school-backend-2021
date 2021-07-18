@@ -1,7 +1,7 @@
 package main
 
 import (
-	"XollaSchoolBE/productServer"
+	"XsollaSchoolBE/productServer"
 	"context"
 	"log"
 	"os"

@@ -1,8 +1,8 @@
 package productServer
 
 import (
-	"XollaSchoolBE/DB"
-	"XollaSchoolBE/models"
+	"XsollaSchoolBE/DB"
+	"XsollaSchoolBE/models"
 	"bytes"
 	"context"
 	"encoding/json"
