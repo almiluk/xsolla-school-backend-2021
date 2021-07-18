@@ -372,12 +372,12 @@ func TestIncorrectUpdate(t *testing.T) {
 }
 
 func getProductFromReader(reader io.Reader) (*models.Product, error) {
-	prod := models.EmptyProduct()
-	err := json.NewDecoder(reader).Decode(prod)
+	prods := []*models.Product{}
+	err := json.NewDecoder(reader).Decode(&prods)
 	if err != nil {
 		return nil, err
 	} else {
-		return prod, nil
+		return prods[0], nil
 	}
 }
 
