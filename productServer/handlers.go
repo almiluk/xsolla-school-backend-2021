@@ -12,6 +12,15 @@ import (
 
 // TODO: Check if request body signature is matches with models.InputProduct
 
+// addProduct godoc
+// @Summary add new product
+// @Accept json
+// @Produces json
+// @Param product body models.InputProduct true "adding product"
+// @Success 200 {object} models.Product "added product"
+// @Failure 400 {object} models.ResponseErrorProduct
+// @Failure 500 {object} models.ResponseError
+// @Router /products [post]
 func (srv *ProductServer) addProduct(ctx *gin.Context) {
 	// TODO: More informative message about unmarshal error
 	newProduct := models.EmptyInputProduct()
@@ -23,11 +32,21 @@ func (srv *ProductServer) addProduct(ctx *gin.Context) {
 
 	if product, err := srv.db.AddProduct(*newProduct); err == nil {
 		ctx.JSON(http.StatusOK, product)
+	} else if err == DB.ProductAlreadyExistsError {
+		ctx.JSON(http.StatusBadRequest, models.ResponseErrorProduct{err.Error(), *product})
 	} else {
 		ctx.JSON(http.StatusInternalServerError, models.ResponseError{err.Error()})
 	}
 }
 
+// getProductWithURL godoc
+// @Summary get product with specific SKU with SKU in URL path
+// @Produces json
+// @Param SKU path string true "SKU of searching product"
+// @Success 200 {array} models.Product
+// @Failure 404 {object} models.ResponseError "product with such SKU does not exist"
+// @Failure 500 {object} models.ResponseError
+// @Router /products/{SKU} [get]
 func (srv *ProductServer) getProductWithURL(ctx *gin.Context) {
 	SKU := ctx.Param("SKU")
 	foundProduct, err := srv.db.GetProductBySKU(SKU)

@@ -8,6 +8,13 @@ import (
 	"os/signal"
 )
 
+// @title almilukXsollaSchoolBE
+// @description This is a service for managing products on internet marketplace
+// @version 0.1
+
+// @host localhost:8080
+// @BasePath /
+
 func main() {
 	srv, err := productServer.Run(":8080", "products.db")
 	if err != nil {

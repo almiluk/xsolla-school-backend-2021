@@ -1,0 +1,383 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a service for managing products on internet marketplace",
+        "title": "almilukXsollaSchoolBE",
+        "contact": {},
+        "version": "0.1"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/products": {
+            "get": {
+                "description": "Method return product with specific SKU, if related parameter is specified else similarly with Id.\nIf both of parameters aren't specified return all products or group of them, if groupSize and groupNum params are specified",
+                "summary": "get product with specific SKU or Id with it in URL params or all of the products, or part of them",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "SKU of searching product",
+                        "name": "sku",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Id of searching product",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Size of requesting products group",
+                        "name": "groupSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of requesting products group",
+                        "name": "groupNum",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Product"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Product with specified SKU or Id not found",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "summary": "update product with specific SKU or Id with it in URL params",
+                "parameters": [
+                    {
+                        "description": "new product",
+                        "name": "product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/InputProduct"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "SKU of updating product",
+                        "name": "sku",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Id of updating product",
+                        "name": "id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "new product",
+                        "schema": {
+                            "$ref": "#/definitions/Product"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseErrorProduct"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "summary": "add new product",
+                "parameters": [
+                    {
+                        "description": "adding product",
+                        "name": "product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/InputProduct"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "added product",
+                        "schema": {
+                            "$ref": "#/definitions/Product"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseErrorProduct"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Method delete product with specific SKU, if related parameter is specified else similarly with Id.",
+                "summary": "delete product with specific SKU or Id with it in URL params",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "SKU of deleting product",
+                        "name": "sku",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Id of deleting product",
+                        "name": "id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Product with specified SKU or Id not found",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/{SKU}": {
+            "get": {
+                "summary": "get product with specific SKU with SKU in URL path",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "SKU of searching product",
+                        "name": "SKU",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Product"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "product with such SKU does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "summary": "update product with specific SKU with SKU in URL path",
+                "parameters": [
+                    {
+                        "description": "new product",
+                        "name": "product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/InputProduct"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "SKU of updating product",
+                        "name": "SKU",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "added product",
+                        "schema": {
+                            "$ref": "#/definitions/Product"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseErrorProduct"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "delete product with specific SKU with SKU in URL path",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "SKU of deleting product",
+                        "name": "SKU",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "404": {
+                        "description": "product with such SKU does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "InputProduct": {
+            "type": "object",
+            "properties": {
+                "cost": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "Product": {
+            "type": "object",
+            "properties": {
+                "cost": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "ResponseError": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "description": "occurred error",
+                    "type": "string"
+                }
+            }
+        },
+        "ResponseErrorProduct": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "description": "occurred error",
+                    "type": "string"
+                },
+                "product": {
+                    "description": "product with same SKU as the product in request in case of collision",
+                    "$ref": "#/definitions/Product"
+                }
+            }
+        }
+    }
+}

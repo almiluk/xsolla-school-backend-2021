@@ -2,8 +2,11 @@ package productServer
 
 import (
 	"XsollaSchoolBE/DB"
+	_ "XsollaSchoolBE/docs"
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 	"log"
 	"net/http"
 )
@@ -39,6 +42,7 @@ func (srv *ProductServer) initHandlers() {
 	router.DELETE("/products", srv.deleteProductWithParam)
 	router.PUT("/products/:SKU", srv.updateProductWithURL)
 	router.PUT("/products", srv.updateProductWithParam)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	srv.Handler = router
 }
 

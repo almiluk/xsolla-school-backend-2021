@@ -1,0 +1,255 @@
+basePath: /
+definitions:
+  InputProduct:
+    properties:
+      cost:
+        type: integer
+      name:
+        type: string
+      sku:
+        type: string
+      type:
+        type: string
+    type: object
+  Product:
+    properties:
+      cost:
+        type: integer
+      id:
+        type: integer
+      name:
+        type: string
+      sku:
+        type: string
+      type:
+        type: string
+    type: object
+  ResponseError:
+    properties:
+      error:
+        description: occurred error
+        type: string
+    type: object
+  ResponseErrorProduct:
+    properties:
+      error:
+        description: occurred error
+        type: string
+      product:
+        $ref: '#/definitions/Product'
+        description: product with same SKU as the product in request in case of collision
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a service for managing products on internet marketplace
+  title: almilukXsollaSchoolBE
+  version: "0.1"
+paths:
+  /products:
+    delete:
+      description: Method delete product with specific SKU, if related parameter is
+        specified else similarly with Id.
+      parameters:
+      - description: SKU of deleting product
+        in: query
+        name: sku
+        type: string
+      - description: Id of deleting product
+        in: query
+        name: id
+        type: integer
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "404":
+          description: Product with specified SKU or Id not found
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
+      summary: delete product with specific SKU or Id with it in URL params
+    get:
+      description: |-
+        Method return product with specific SKU, if related parameter is specified else similarly with Id.
+        If both of parameters aren't specified return all products or group of them, if groupSize and groupNum params are specified
+      parameters:
+      - description: SKU of searching product
+        in: query
+        name: sku
+        type: string
+      - description: Id of searching product
+        in: query
+        name: id
+        type: integer
+      - description: Size of requesting products group
+        in: query
+        name: groupSize
+        type: integer
+      - description: Number of requesting products group
+        in: query
+        name: groupNum
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/Product'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "404":
+          description: Product with specified SKU or Id not found
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
+      summary: get product with specific SKU or Id with it in URL params or all of
+        the products, or part of them
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: adding product
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/InputProduct'
+      responses:
+        "200":
+          description: added product
+          schema:
+            $ref: '#/definitions/Product'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseErrorProduct'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
+      summary: add new product
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: new product
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/InputProduct'
+      - description: SKU of updating product
+        in: query
+        name: sku
+        type: string
+      - description: Id of updating product
+        in: query
+        name: id
+        type: integer
+      responses:
+        "200":
+          description: new product
+          schema:
+            $ref: '#/definitions/Product'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseErrorProduct'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
+      summary: update product with specific SKU or Id with it in URL params
+  /products/{SKU}:
+    delete:
+      parameters:
+      - description: SKU of deleting product
+        in: path
+        name: SKU
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+        "404":
+          description: product with such SKU does not exist
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
+      summary: delete product with specific SKU with SKU in URL path
+    get:
+      parameters:
+      - description: SKU of searching product
+        in: path
+        name: SKU
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/Product'
+            type: array
+        "404":
+          description: product with such SKU does not exist
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
+      summary: get product with specific SKU with SKU in URL path
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: new product
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/InputProduct'
+      - description: SKU of updating product
+        in: path
+        name: SKU
+        type: string
+      responses:
+        "200":
+          description: added product
+          schema:
+            $ref: '#/definitions/Product'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseErrorProduct'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
+      summary: update product with specific SKU with SKU in URL path
+swagger: "2.0"
