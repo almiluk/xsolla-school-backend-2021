@@ -69,7 +69,21 @@ func (srv *ProductServer) getProductWithParam(ctx *gin.Context) {
 			}
 		}
 	} else {
-		products, err := srv.db.GetAllProducts()
+		var products []models.Product
+		var err error
+		groupSizeStr, okSize := ctx.GetQuery("groupSize")
+		groupNumStr, okNum := ctx.GetQuery("groupNum")
+		if okSize && okNum {
+			if groupSize, err := strconv.ParseUint(groupSizeStr, 10, 32); err != nil {
+				errMsg = "groupSize parameter must be an 32-bit unsigned integer"
+			} else if groupNum, err := strconv.ParseUint(groupNumStr, 10, 32); err != nil {
+				errMsg = "groupNum parameter must be an 32-bit unsigned integer"
+			} else {
+				products, err = srv.db.GetGroupOfProducts(uint(groupSize), uint(groupNum))
+			}
+		} else {
+			products, err = srv.db.GetAllProducts()
+		}
 		if err != nil {
 			errMsg = err.Error()
 			code = http.StatusInternalServerError

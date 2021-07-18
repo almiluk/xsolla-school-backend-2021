@@ -79,7 +79,6 @@ func TestIncorrectPost(t *testing.T) {
 		bytes.NewBuffer(jsonProduct),
 	)
 	if err == nil {
-		defer resp.Body.Close()
 		respData := make(map[string]interface{})
 		if resp.StatusCode != http.StatusBadRequest {
 			t.Error("not 400 code for incorrect post request")
@@ -90,6 +89,7 @@ func TestIncorrectPost(t *testing.T) {
 		} else if !strings.HasPrefix(errMsg.(string), "json format error") {
 			t.Error("wrong error message: ", errMsg)
 		}
+		resp.Body.Close()
 	} else {
 		t.Error(err)
 	}
@@ -135,7 +135,32 @@ func TestGetAll(t *testing.T) {
 	} else {
 		for i, prod := range receivedProducts {
 			if testProducts[i] != prod.InputProduct {
-				t.Fatalf("SKU mismatch:\n%v,\n%v", prod, testProducts[i])
+				t.Fatalf("SKU mismatch:\n%v,\n%v", prod.InputProduct, testProducts[i])
+			}
+		}
+	}
+}
+
+func TestGetGroupOfProducts(t *testing.T) {
+	resp, err := http.Get("http://localhost:8080/products?groupSize=3&groupNum=2")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		bodyData, _ := ioutil.ReadAll(resp.Body)
+		t.Fatal(fmt.Sprintf("\nBad status code: %d\nResponse body: %s\nResponse body:", resp.StatusCode, bodyData))
+	}
+	var receivedProducts []models.Product
+	err = json.NewDecoder(resp.Body).Decode(&receivedProducts)
+	if err != nil {
+		t.Fatal(err)
+	} else if len(receivedProducts) != 3 {
+		t.Fatal("Wrong length of received products: ", len(testProducts))
+	} else {
+		for i, prod := range receivedProducts {
+			if testProducts[3+i] != prod.InputProduct {
+				t.Fatalf("SKU mismatch:\n%v,\n%v", prod.InputProduct, testProducts[3+i])
 			}
 		}
 	}

@@ -25,6 +25,7 @@ var sqlQueries = map[string]string{
 	"getProductById":     "SELECT * FROM Products WHERE id=?",
 	"getProductBySKU":    "SELECT * From Products WHERE SKU=?",
 	"getAllProducts":     "SELECT * FROM Products",
+	"getGroupOfProducts": "SELECT * FROM Products ORDER BY id LIMIT ? OFFSET ?",
 	"insertProduct":      "INSERT INTO Products(SKU, name, type, cost) VALUES(?, ?, ?, ?)",
 	"deleteProductBySKU": "DELETE FROM Products WHERE SKU=?",
 	"deleteProductById":  "DELETE FROM Products WHERE id=?",
@@ -85,6 +86,18 @@ func (db *DB) GetAllProducts() ([]models.Product, error) {
 	for rows.Next() {
 		rows.Scan(&product.Id, &product.SKU, &product.Name, &product.Type, &product.Cost)
 		products = append(products, product)
+	}
+	return products, nil
+}
+
+func (db *DB) GetGroupOfProducts(groupSize uint, groupNum uint) ([]models.Product, error) {
+	rows, err := db.Query(sqlQueries["getGroupOfProducts"], groupSize, (groupNum-1)*groupSize)
+	if err != nil {
+		return nil, err
+	}
+	products := make([]models.Product, groupSize)
+	for i := 0; rows.Next(); i++ {
+		rows.Scan(&products[i].Id, &products[i].SKU, &products[i].Name, &products[i].Type, &products[i].Cost)
 	}
 	return products, nil
 }
