@@ -95,9 +95,11 @@ func (db *DB) GetGroupOfProducts(groupSize uint, groupNum uint) ([]models.Produc
 	if err != nil {
 		return nil, err
 	}
-	products := make([]models.Product, groupSize)
+	products := make([]models.Product, 0)
+	var product models.Product
 	for i := 0; rows.Next(); i++ {
-		rows.Scan(&products[i].Id, &products[i].SKU, &products[i].Name, &products[i].Type, &products[i].Cost)
+		rows.Scan(&product.Id, &product.SKU, &product.Name, &product.Type, &product.Cost)
+		products = append(products, product)
 	}
 	return products, nil
 }
@@ -142,28 +144,30 @@ func (db *DB) DeleteProductBySKU(SKU string) error {
 	return err
 }
 
-func (db *DB) UpdateProductBySKU(SKU string, inputProd models.InputProduct) error {
-	_, err := db.GetProductBySKU(SKU)
+func (db *DB) UpdateProductBySKU(SKU string, inputProd models.InputProduct) (*models.Product, error) {
+	prod, err := db.GetProductBySKU(SKU)
 	if err != nil {
-		return err
+		return prod, err
 	}
 	_, err = db.Exec(sqlQueries["updateProductBySKU"], inputProd.SKU, inputProd.Name, inputProd.Type, inputProd.Cost, SKU)
 	if sqlErr, ok := err.(sqlite3.Error); ok && sqlErr.ExtendedCode == 2067 {
 		// Error code 2067 means UNIQUE constraint failed (https://www.sqlite.org/rescode.html#constraint_unique)
-		return ProductAlreadyExistsError
+		prod, _ = db.GetProductBySKU(inputProd.SKU)
+		return prod, ProductAlreadyExistsError
 	}
-	return err
+	return &models.Product{inputProd, prod.Id}, err
 }
 
-func (db *DB) UpdateProductById(id int64, inputProd models.InputProduct) error {
-	_, err := db.GetProductByID(id)
+func (db *DB) UpdateProductById(id int64, inputProd models.InputProduct) (*models.Product, error) {
+	prod, err := db.GetProductByID(id)
 	if err != nil {
-		return err
+		return prod, err
 	}
 	_, err = db.Exec(sqlQueries["updateProductById"], inputProd.SKU, inputProd.Name, inputProd.Type, inputProd.Cost, id)
 	if sqlErr, ok := err.(sqlite3.Error); ok && sqlErr.ExtendedCode == 2067 {
 		// Error code 2067 means UNIQUE constraint failed (https://www.sqlite.org/rescode.html#constraint_unique)
-		return ProductAlreadyExistsError
+		prod, _ = db.GetProductBySKU(inputProd.SKU)
+		return prod, ProductAlreadyExistsError
 	}
-	return err
+	return &models.Product{inputProd, prod.Id}, err
 }
