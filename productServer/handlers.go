@@ -5,7 +5,6 @@ import (
 	"XollaSchoolBE/models"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 )
@@ -19,12 +18,10 @@ func (srv *ProductServer) addProduct(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "json format error: " + err.Error()})
 		return
-	} else if newProduct.Name == "" || newProduct.SKU == "" || newProduct.Type == "" {
-
 	}
 
 	if product, err := srv.db.AddProduct(*newProduct); err == nil {
-		ctx.JSON(http.StatusOK, gin.H{})
+		ctx.JSON(http.StatusOK, product)
 	} else {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "product": product})
 	}
@@ -103,7 +100,11 @@ func (srv *ProductServer) deleteProductWithURL(ctx *gin.Context) {
 func (srv *ProductServer) deleteProductWithParam(ctx *gin.Context) {
 	var errMsg string
 	code := http.StatusOK
-	if prSKU, ok := ctx.GetQuery("sku"); ok {
+	prSKU, prId, err := getSKUandIDFromUrl(ctx)
+	if err != nil {
+		errMsg = err.Error()
+		code = http.StatusBadRequest
+	} else if prSKU != "" {
 		if err := srv.db.DeleteProductBySKU(prSKU); err != nil {
 			errMsg = err.Error()
 			if err == DB.ProductNotFoundError {
