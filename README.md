@@ -65,4 +65,4 @@
 По-умолчанию приложение запускается в отладочном режиме (реализованно в github.com/gin-gonic/gin), для запуска в режиме релиза, установите значение переменной среды GIN_MODE равным "release".
 
 ## Описание API 
-После запуска приложения по адресу [http://localhost:8080/swagger/index.html/](http://localhost:8080/swagger/index.html/) доступна интерактивная документация swaggerUI
+После запуска приложения, по адресу [http://localhost:8080/swagger/index.html/](http://localhost:8080/swagger/index.html/) доступна интерактивная документация swaggerUI.
