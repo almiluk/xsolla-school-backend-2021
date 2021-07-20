@@ -206,7 +206,7 @@ func (srv *ProductServer) deleteProductWithParam(ctx *gin.Context) {
 // @Accept json
 // @Produces json
 // @Param product body models.InputProduct true "new product"
-// @Param SKU path string false "SKU of updating product"
+// @Param SKU path string true "SKU of updating product"
 // @Success 200 {object} models.Product "added product"
 // @Failure 400 {object} models.ResponseErrorProduct
 // @Failure 404 {object} models.ResponseError

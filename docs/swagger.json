@@ -258,7 +258,8 @@
                         "type": "string",
                         "description": "SKU of updating product",
                         "name": "SKU",
-                        "in": "path"
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
