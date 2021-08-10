@@ -93,7 +93,7 @@ func (srv *ProductServer) getProductWithParam(ctx *gin.Context) {
 			}
 		}
 	} else if prId != 0 {
-		if foundProduct, err := srv.db.GetProductByID(prId); err == nil {
+		if foundProduct, err := srv.db.GetProductById(prId); err == nil {
 			responseData, _ = json.Marshal([]*models.Product{foundProduct})
 		} else {
 			errMsg = err.Error()
@@ -181,7 +181,7 @@ func (srv *ProductServer) deleteProductWithParam(ctx *gin.Context) {
 			}
 		}
 	} else if prId != 0 {
-		if err := srv.db.DeleteProductByID(prId); err != nil {
+		if err := srv.db.DeleteProductById(prId); err != nil {
 			errMsg = err.Error()
 			if err == DB.ProductNotFoundError {
 				code = http.StatusNotFound

@@ -13,12 +13,12 @@ import (
 
 type ProductServer struct {
 	*http.Server
-	db *DB.DB
+	db DB.DB
 }
 
 func Run(addr string, DBfilename string) (*ProductServer, error) {
 	var err error
-	db, err := DB.Init(DBfilename)
+	db, err := DB.InitSqlite3DB(DBfilename)
 	if err != nil {
 		return nil, err
 	}
