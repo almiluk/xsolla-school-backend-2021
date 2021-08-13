@@ -60,7 +60,7 @@ paths:
         name: id
         type: integer
       responses:
-        "200":
+        "204":
           description: ""
         "400":
           description: Bad Request
@@ -128,7 +128,7 @@ paths:
         schema:
           $ref: '#/definitions/InputProduct'
       responses:
-        "200":
+        "201":
           description: added product
           schema:
             $ref: '#/definitions/Product'
@@ -186,7 +186,7 @@ paths:
         required: true
         type: string
       responses:
-        "200":
+        "204":
           description: ""
         "404":
           description: product with such SKU does not exist
