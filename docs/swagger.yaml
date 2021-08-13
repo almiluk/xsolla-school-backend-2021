@@ -117,6 +117,34 @@ paths:
             $ref: '#/definitions/ResponseError'
       summary: get product with specific SKU or Id with it in URL params or all of
         the products, or part of them
+    head:
+      parameters:
+      - description: SKU of searching product
+        in: query
+        name: sku
+        type: string
+      - description: Id of searching product
+        in: query
+        name: id
+        type: integer
+      - description: Size of requesting products group
+        in: query
+        name: groupSize
+        type: integer
+      - description: Number of requesting products group
+        in: query
+        name: groupNum
+        type: integer
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: ""
+        "404":
+          description: ""
+        "500":
+          description: ""
+      summary: return headers as similar get request
     post:
       consumes:
       - application/json
@@ -220,6 +248,21 @@ paths:
           schema:
             $ref: '#/definitions/ResponseError'
       summary: get product with specific SKU with SKU in URL path
+    head:
+      parameters:
+      - description: SKU of searching product
+        in: path
+        name: SKU
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+        "404":
+          description: ""
+        "500":
+          description: ""
+      summary: return headers as similar get request
     put:
       consumes:
       - application/json

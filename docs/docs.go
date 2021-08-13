@@ -215,6 +215,49 @@ var doc = `{
                         }
                     }
                 }
+            },
+            "head": {
+                "summary": "return headers as similar get request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "SKU of searching product",
+                        "name": "sku",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Id of searching product",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Size of requesting products group",
+                        "name": "groupSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of requesting products group",
+                        "name": "groupNum",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": ""
+                    },
+                    "404": {
+                        "description": ""
+                    },
+                    "500": {
+                        "description": ""
+                    }
+                }
             }
         },
         "/products/{SKU}": {
@@ -329,6 +372,29 @@ var doc = `{
                         "schema": {
                             "$ref": "#/definitions/ResponseError"
                         }
+                    }
+                }
+            },
+            "head": {
+                "summary": "return headers as similar get request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "SKU of searching product",
+                        "name": "SKU",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "404": {
+                        "description": ""
+                    },
+                    "500": {
+                        "description": ""
                     }
                 }
             }

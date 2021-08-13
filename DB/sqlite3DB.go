@@ -71,30 +71,30 @@ func (db *sqlite3DB) AddProduct(product models.InputProduct) (*models.Product, e
 	}
 }
 
-func (db *sqlite3DB) GetAllProducts() ([]models.Product, error) {
+func (db *sqlite3DB) GetAllProducts() ([]*models.Product, error) {
 	rows, err := db.Query(sqlQueries["getAllProducts"])
 	if err != nil {
 		return nil, err
 	}
-	products := make([]models.Product, 0)
-	var product models.Product
+	products := make([]*models.Product, 0)
 	for rows.Next() {
+		var product models.Product
 		rows.Scan(&product.Id, &product.SKU, &product.Name, &product.Type, &product.Cost)
-		products = append(products, product)
+		products = append(products, &product)
 	}
 	return products, nil
 }
 
-func (db *sqlite3DB) GetGroupOfProducts(groupSize uint, groupNum uint) ([]models.Product, error) {
+func (db *sqlite3DB) GetGroupOfProducts(groupSize uint, groupNum uint) ([]*models.Product, error) {
 	rows, err := db.Query(sqlQueries["getGroupOfProducts"], groupSize, (groupNum-1)*groupSize)
 	if err != nil {
 		return nil, err
 	}
-	products := make([]models.Product, 0)
-	var product models.Product
+	products := make([]*models.Product, 0)
 	for i := 0; rows.Next(); i++ {
+		var product models.Product
 		rows.Scan(&product.Id, &product.SKU, &product.Name, &product.Type, &product.Cost)
-		products = append(products, product)
+		products = append(products, &product)
 	}
 	return products, nil
 }

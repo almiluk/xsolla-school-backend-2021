@@ -40,6 +40,8 @@ func (srv *ProductServer) initHandlers() {
 		apiV1Group.POST("/", srv.addProduct)
 		apiV1Group.GET("/:SKU", srv.getProductWithURL)
 		apiV1Group.GET("/", srv.getProductWithParam)
+		apiV1Group.HEAD("/:SKU", srv.headProductsWithURL)
+		apiV1Group.HEAD("/", srv.headProductsWithParam)
 		apiV1Group.DELETE("/:SKU", srv.deleteProductWithURL)
 		apiV1Group.DELETE("/", srv.deleteProductWithParam)
 		apiV1Group.PUT("/:SKU", srv.updateProductWithURL)

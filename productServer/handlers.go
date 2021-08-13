@@ -3,7 +3,6 @@ package productServer
 import (
 	"XsollaSchoolBE/DB"
 	"XsollaSchoolBE/models"
-	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -78,56 +77,48 @@ func (srv *ProductServer) getProductWithURL(ctx *gin.Context) {
 // @Failure 500 {object} models.ResponseError
 // @Router /products [get]
 func (srv *ProductServer) getProductWithParam(ctx *gin.Context) {
-	var responseData []byte
-	var errMsg string
-	code := http.StatusOK
-	prSKU, prId, err := getSKUAndIDFromUrl(ctx)
-	if err != nil {
-		errMsg = err.Error()
-		code = http.StatusBadRequest
-	} else if prSKU != "" {
-		if foundProduct, err := srv.db.GetProductBySKU(prSKU); err == nil {
-			responseData, _ = json.Marshal([]*models.Product{foundProduct})
-		} else {
-			errMsg = err.Error()
-			code = getHttpCodeFromError(err)
-		}
-	} else if prId != 0 {
-		if foundProduct, err := srv.db.GetProductById(prId); err == nil {
-			responseData, _ = json.Marshal([]*models.Product{foundProduct})
-		} else {
-			errMsg = err.Error()
-			code = getHttpCodeFromError(err)
-		}
+	code, products, err := srv.getProductsFromDBWithParam(ctx)
+	if err == nil {
+		ctx.JSON(code, products)
 	} else {
-		var products []models.Product
-		var err error
-		groupSizeStr, okSize := ctx.GetQuery("groupSize")
-		groupNumStr, okNum := ctx.GetQuery("groupNum")
-		if okSize && okNum {
-			if groupSize, err := strconv.ParseUint(groupSizeStr, 10, 32); err != nil {
-				errMsg = "groupSize parameter must be an 32-bit unsigned integer"
-			} else if groupNum, err := strconv.ParseUint(groupNumStr, 10, 32); err != nil {
-				errMsg = "groupNum parameter must be an 32-bit unsigned integer"
-			} else {
-				products, err = srv.db.GetGroupOfProducts(uint(groupSize), uint(groupNum))
-			}
-		} else {
-			products, err = srv.db.GetAllProducts()
-		}
-		if err != nil {
-			errMsg = err.Error()
-			code = http.StatusInternalServerError
-		} else {
-			responseData, _ = json.Marshal(products)
-		}
+		ctx.JSON(code, models.ResponseError{err.Error()})
 	}
+}
 
-	if errMsg == "" {
-		ctx.Header("Content-Type", "application/json")
-		ctx.String(code, string(responseData))
+// headProductsWithURL godoc
+// @Summary return headers as similar get request
+// @Param SKU path string true "SKU of searching product"
+// @Success 200
+// @Failure 404
+// @Failure 500
+// @Router /products/{SKU} [head]
+func (srv *ProductServer) headProductsWithURL(ctx *gin.Context) {
+	SKU := ctx.Param("SKU")
+	_, err := srv.db.GetProductBySKU(SKU)
+	if err == nil {
+		ctx.JSON(http.StatusOK, "")
 	} else {
-		ctx.JSON(code, models.ResponseError{errMsg})
+		ctx.JSON(getHttpCodeFromError(err), "")
+	}
+}
+
+// headProductsWithParam godoc
+// @Summary return headers as similar get request
+// @Param sku query string false "SKU of searching product"
+// @Param id query int false "Id of searching product"
+// @Param groupSize query int false "Size of requesting products group"
+// @Param groupNum query int false "Number of requesting products group"
+// @Success 200
+// @Failure 404
+// @Failure 400
+// @Failure 500
+// @Router /products [head]
+func (srv *ProductServer) headProductsWithParam(ctx *gin.Context) {
+	code, _, err := srv.getProductsFromDBWithParam(ctx)
+	if err == nil {
+		ctx.JSON(code, "")
+	} else {
+		ctx.JSON(code, "")
 	}
 }
 
@@ -266,6 +257,47 @@ func (srv *ProductServer) updateProductWithParam(ctx *gin.Context) {
 	} else {
 		ctx.JSON(code, models.ResponseError{errMsg})
 	}
+}
+
+func (srv *ProductServer) getProductsFromDBWithParam(ctx *gin.Context) (code int, products []*models.Product, err error) {
+	code = http.StatusOK
+	prSKU, prId, err := getSKUAndIDFromUrl(ctx)
+	if err != nil {
+		code = http.StatusBadRequest
+	} else if prSKU != "" {
+		var foundProduct *models.Product
+		if foundProduct, err = srv.db.GetProductBySKU(prSKU); err == nil {
+			products = []*models.Product{foundProduct}
+		} else {
+			code = getHttpCodeFromError(err)
+		}
+	} else if prId != 0 {
+		if foundProduct, err := srv.db.GetProductById(prId); err == nil {
+			products = []*models.Product{foundProduct}
+		} else {
+			code = getHttpCodeFromError(err)
+		}
+	} else {
+		groupSizeStr, okSize := ctx.GetQuery("groupSize")
+		groupNumStr, okNum := ctx.GetQuery("groupNum")
+		if okSize && okNum {
+			var groupSize uint64
+			var groupNum uint64
+			if groupSize, err = strconv.ParseUint(groupSizeStr, 10, 32); err != nil {
+				err = errors.New("groupSize parameter must be an 32-bit unsigned integer")
+			} else if groupNum, err = strconv.ParseUint(groupNumStr, 10, 32); err != nil {
+				err = errors.New("groupNum parameter must be an 32-bit unsigned integer")
+			} else {
+				products, err = srv.db.GetGroupOfProducts(uint(groupSize), uint(groupNum))
+			}
+		} else {
+			products, err = srv.db.GetAllProducts()
+		}
+		if err != nil {
+			code = http.StatusInternalServerError
+		}
+	}
+	return
 }
 
 func getSKUAndIDFromUrl(ctx *gin.Context) (string, int64, error) {
