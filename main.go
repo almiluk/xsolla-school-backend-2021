@@ -13,7 +13,7 @@ import (
 // @version 0.1
 
 // @host localhost:8080
-// @BasePath /
+// @BasePath /api/v1/
 
 func main() {
 	srv, err := productServer.Run(":8080", "products.db")

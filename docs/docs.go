@@ -272,7 +272,8 @@ var doc = `{
                         "type": "string",
                         "description": "SKU of updating product",
                         "name": "SKU",
-                        "in": "path"
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -409,7 +410,7 @@ type swaggerInfo struct {
 var SwaggerInfo = swaggerInfo{
 	Version:     "0.1",
 	Host:        "localhost:8080",
-	BasePath:    "/",
+	BasePath:    "/api/v1/",
 	Schemes:     []string{},
 	Title:       "almilukXsollaSchoolBE",
 	Description: "This is a service for managing products on internet marketplace",

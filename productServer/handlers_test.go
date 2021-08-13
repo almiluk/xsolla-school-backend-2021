@@ -17,6 +17,8 @@ import (
 	"testing"
 )
 
+const baseUrl = "http://localhost:8080/api/v1/products"
+
 var testProducts = []models.InputProduct{
 	{"TEST1231", "Prod1", "Type1", 10},
 	{"TEST1232", "Prod2", "Type3", 12},
@@ -56,7 +58,7 @@ func TestCorrectPost(t *testing.T) {
 	for _, prod := range testProducts {
 		jsonProduct, _ := json.Marshal(prod)
 		resp, err := http.Post(
-			"http://localhost:8080/products",
+			baseUrl,
 			"application/json",
 			bytes.NewBuffer(jsonProduct))
 		if err != nil {
@@ -74,7 +76,7 @@ func TestCorrectPost(t *testing.T) {
 func TestIncorrectPost(t *testing.T) {
 	jsonProduct, _ := json.Marshal(map[string]string{"Cost": "TEST12310"})
 	resp, err := http.Post(
-		"http://localhost:8080/products",
+		baseUrl,
 		"application/json",
 		bytes.NewBuffer(jsonProduct),
 	)
@@ -96,7 +98,7 @@ func TestIncorrectPost(t *testing.T) {
 
 	jsonProduct, _ = json.Marshal(testProducts[0])
 	resp, err = http.Post(
-		"http://localhost:8080/products",
+		baseUrl,
 		"application/json",
 		bytes.NewBuffer(jsonProduct))
 	if err != nil {
@@ -117,7 +119,7 @@ func TestIncorrectPost(t *testing.T) {
 }
 
 func TestGetAll(t *testing.T) {
-	resp, err := http.Get("http://localhost:8080/products")
+	resp, err := http.Get(baseUrl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -142,7 +144,7 @@ func TestGetAll(t *testing.T) {
 }
 
 func TestGetGroupOfProducts(t *testing.T) {
-	resp, err := http.Get("http://localhost:8080/products?groupSize=3&groupNum=2")
+	resp, err := http.Get(baseUrl + "?groupSize=3&groupNum=2")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -168,9 +170,9 @@ func TestGetGroupOfProducts(t *testing.T) {
 
 func TestCorrectGet(t *testing.T) {
 	for _, url := range []string{
-		"http://localhost:8080/products/" + testProducts[0].SKU,
-		"http://localhost:8080/products?sku=" + testProducts[0].SKU,
-		"http://localhost:8080/products?id=1",
+		baseUrl + "/" + testProducts[0].SKU,
+		baseUrl + "?sku=" + testProducts[0].SKU,
+		baseUrl + "?id=1",
 	} {
 		prodPtr, err, _ := getProductFromURL(url)
 		if err != nil {
@@ -183,9 +185,9 @@ func TestCorrectGet(t *testing.T) {
 
 func TestIncorrectGet(t *testing.T) {
 	for _, url := range []string{
-		"http://localhost:8080/products/WRONG",
-		"http://localhost:8080/products?sku=WRONG",
-		"http://localhost:8080/products?id=999999",
+		baseUrl + "/WRONG",
+		baseUrl + "?sku=WRONG",
+		baseUrl + "?id=999999",
 	} {
 		_, _, code := getProductFromURL(url)
 		if code != http.StatusNotFound {
@@ -193,7 +195,7 @@ func TestIncorrectGet(t *testing.T) {
 		}
 	}
 
-	_, _, code := getProductFromURL("http://localhost:8080/products?id=WRONG")
+	_, _, code := getProductFromURL(baseUrl + "?id=WRONG")
 	if code != http.StatusBadRequest {
 		t.Errorf("not 400 code for nondigital product id: %d", code)
 	}
@@ -201,9 +203,9 @@ func TestIncorrectGet(t *testing.T) {
 
 func TestCorrectDelete(t *testing.T) {
 	requestingURLs := []string{
-		"http://localhost:8080/products/" + testProducts[0].SKU,
-		"http://localhost:8080/products?sku=" + testProducts[1].SKU,
-		"http://localhost:8080/products?id=3",
+		baseUrl + "/" + testProducts[0].SKU,
+		baseUrl + "?sku=" + testProducts[1].SKU,
+		baseUrl + "?id=3",
 	}
 	client := &http.Client{}
 
@@ -235,9 +237,9 @@ func TestCorrectDelete(t *testing.T) {
 
 func TestIncorrectDelete(t *testing.T) {
 	requestingURLs := []string{
-		"http://localhost:8080/products/WRONG",
-		"http://localhost:8080/products?sku=WRONG",
-		"http://localhost:8080/products?id=999999",
+		baseUrl + "/WRONG",
+		baseUrl + "?sku=WRONG",
+		baseUrl + "?id=999999",
 	}
 	client := &http.Client{}
 
@@ -257,7 +259,7 @@ func TestIncorrectDelete(t *testing.T) {
 		}
 	}
 
-	request, err := http.NewRequest(http.MethodDelete, "http://localhost:8080/products?id=WRONG", nil)
+	request, err := http.NewRequest(http.MethodDelete, baseUrl+"?id=WRONG", nil)
 	if err != nil {
 		t.Error(err)
 	} else if resp, err := client.Do(request); err != nil {
@@ -272,14 +274,14 @@ func TestIncorrectDelete(t *testing.T) {
 
 func TestCorrectUpdate(t *testing.T) {
 	requestingURLs := []string{
-		"http://localhost:8080/products/" + testProducts[3].SKU,
-		"http://localhost:8080/products?sku=" + testProducts[4].SKU,
-		"http://localhost:8080/products?id=6",
+		baseUrl + "/" + testProducts[3].SKU,
+		baseUrl + "?sku=" + testProducts[4].SKU,
+		baseUrl + "?id=6",
 	}
 	checkURLs := []string{
-		"http://localhost:8080/products/NewSKU0",
-		"http://localhost:8080/products?sku=NewSKU1",
-		"http://localhost:8080/products?id=6",
+		baseUrl + "/NewSKU0",
+		baseUrl + "?sku=NewSKU1",
+		baseUrl + "?id=6",
 	}
 	client := &http.Client{}
 	for i, url := range requestingURLs {
@@ -316,9 +318,9 @@ func TestCorrectUpdate(t *testing.T) {
 
 func TestIncorrectUpdate(t *testing.T) {
 	requestingURLs := []string{
-		"http://localhost:8080/products/WRONG",
-		"http://localhost:8080/products?sku=WRONG",
-		"http://localhost:8080/products?id=9999",
+		baseUrl + "/WRONG",
+		baseUrl + "?sku=WRONG",
+		baseUrl + "?id=9999",
 	}
 	client := &http.Client{}
 	for i, url := range requestingURLs {
@@ -340,7 +342,7 @@ func TestIncorrectUpdate(t *testing.T) {
 	}
 	testProductJson, _ := json.Marshal(testProducts[7])
 
-	request, err := http.NewRequest(http.MethodPut, "http://localhost:8080/products?id=WRONG", bytes.NewBuffer(testProductJson))
+	request, err := http.NewRequest(http.MethodPut, baseUrl+"?id=WRONG", bytes.NewBuffer(testProductJson))
 	if err != nil {
 		t.Error(err)
 	} else if resp, err := client.Do(request); err != nil {
@@ -351,7 +353,7 @@ func TestIncorrectUpdate(t *testing.T) {
 		}
 		resp.Body.Close()
 	}
-	request, err = http.NewRequest(http.MethodPut, "http://localhost:8080/products/"+testProducts[8].SKU, bytes.NewBuffer(testProductJson))
+	request, err = http.NewRequest(http.MethodPut, baseUrl+"/"+testProducts[8].SKU, bytes.NewBuffer(testProductJson))
 	if err != nil {
 		t.Error(err)
 	} else if resp, err := client.Do(request); err != nil {
