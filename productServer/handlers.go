@@ -22,7 +22,7 @@ var errorsToHttpStatusCode = map[error]int{
 // @Accept json
 // @Produces json
 // @Param product body models.InputProduct true "adding product"
-// @Success 200 {object} models.Product "added product"
+// @Success 201 {object} models.Product "added product"
 // @Failure 400 {object} models.ResponseErrorProduct
 // @Failure 500 {object} models.ResponseError
 // @Router /products [post]
@@ -36,7 +36,8 @@ func (srv *ProductServer) addProduct(ctx *gin.Context) {
 	}
 
 	if product, err := srv.db.AddProduct(*newProduct); err == nil {
-		ctx.JSON(http.StatusOK, product)
+		ctx.Header("Location", "/products?id="+strconv.FormatInt(product.Id, 10))
+		ctx.JSON(http.StatusCreated, product)
 	} else if err == DB.ProductAlreadyExistsError {
 		ctx.JSON(http.StatusBadRequest, models.ResponseErrorProduct{err.Error(), *product})
 	} else {
@@ -134,14 +135,14 @@ func (srv *ProductServer) getProductWithParam(ctx *gin.Context) {
 // @Summary delete product with specific SKU with SKU in URL path
 // @Produces json
 // @Param SKU path string true "SKU of deleting product"
-// @Success 200
+// @Success 204
 // @Failure 404 {object} models.ResponseError "product with such SKU does not exist"
 // @Failure 500 {object} models.ResponseError
 // @Router /products/{SKU} [delete]
 func (srv *ProductServer) deleteProductWithURL(ctx *gin.Context) {
 	SKU := ctx.Param("SKU")
 	if err := srv.db.DeleteProductBySKU(SKU); err == nil {
-		ctx.JSON(http.StatusOK, gin.H{})
+		ctx.JSON(http.StatusNoContent, gin.H{})
 	} else {
 		ctx.JSON(getHttpCodeFromError(err), err.Error())
 	}
@@ -152,14 +153,14 @@ func (srv *ProductServer) deleteProductWithURL(ctx *gin.Context) {
 // @Description Method delete product with specific SKU, if related parameter is specified else similarly with Id.
 // @Param sku query string false "SKU of deleting product"
 // @Param id query int false "Id of deleting product"
-// @Success 200
+// @Success 204
 // @Failure 404 {object} models.ResponseError "Product with specified SKU or Id not found"
 // @Failure 400 {object} models.ResponseError
 // @Failure 500 {object} models.ResponseError
 // @Router /products [delete]
 func (srv *ProductServer) deleteProductWithParam(ctx *gin.Context) {
 	var errMsg string
-	code := http.StatusOK
+	code := http.StatusNoContent
 	prSKU, prId, err := getSKUAndIDFromUrl(ctx)
 	if err != nil {
 		errMsg = err.Error()

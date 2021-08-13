@@ -66,7 +66,7 @@ func TestCorrectPost(t *testing.T) {
 			continue
 		}
 		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode != http.StatusCreated {
 			bodyStr, _ := ioutil.ReadAll(resp.Body)
 			t.Error(fmt.Sprintf("\nBad status code: %d\nResponse body: %s\n", resp.StatusCode, bodyStr))
 		}
@@ -222,7 +222,7 @@ func TestCorrectDelete(t *testing.T) {
 			t.Error(err)
 			continue
 		} else {
-			if resp.StatusCode != http.StatusOK {
+			if resp.StatusCode != http.StatusNoContent {
 				t.Error("Bad status code: ", resp.StatusCode)
 				continue
 			}
