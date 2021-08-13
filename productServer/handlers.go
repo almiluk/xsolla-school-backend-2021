@@ -10,6 +10,11 @@ import (
 	"strconv"
 )
 
+var errorsToHttpStatusCode = map[error]int{
+	DB.ProductNotFoundError:      http.StatusNotFound,
+	DB.ProductAlreadyExistsError: http.StatusBadRequest,
+}
+
 // TODO: Check if request body signature is matches with models.InputProduct
 
 // addProduct godoc
@@ -52,10 +57,8 @@ func (srv *ProductServer) getProductWithURL(ctx *gin.Context) {
 	foundProduct, err := srv.db.GetProductBySKU(SKU)
 	if err == nil {
 		ctx.JSON(http.StatusOK, []*models.Product{foundProduct})
-	} else if err == DB.ProductNotFoundError {
-		ctx.JSON(http.StatusNotFound, models.ResponseError{err.Error()})
 	} else {
-		ctx.JSON(http.StatusInternalServerError, models.ResponseError{err.Error()})
+		ctx.JSON(getHttpCodeFromError(err), models.ResponseError{err.Error()})
 	}
 }
 
@@ -77,7 +80,7 @@ func (srv *ProductServer) getProductWithParam(ctx *gin.Context) {
 	var responseData []byte
 	var errMsg string
 	code := http.StatusOK
-	prSKU, prId, err := getSKUandIDFromUrl(ctx)
+	prSKU, prId, err := getSKUAndIDFromUrl(ctx)
 	if err != nil {
 		errMsg = err.Error()
 		code = http.StatusBadRequest
@@ -86,22 +89,14 @@ func (srv *ProductServer) getProductWithParam(ctx *gin.Context) {
 			responseData, _ = json.Marshal([]*models.Product{foundProduct})
 		} else {
 			errMsg = err.Error()
-			if err == DB.ProductNotFoundError {
-				code = http.StatusNotFound
-			} else {
-				code = http.StatusInternalServerError
-			}
+			code = getHttpCodeFromError(err)
 		}
 	} else if prId != 0 {
 		if foundProduct, err := srv.db.GetProductById(prId); err == nil {
 			responseData, _ = json.Marshal([]*models.Product{foundProduct})
 		} else {
 			errMsg = err.Error()
-			if err == DB.ProductNotFoundError {
-				code = http.StatusNotFound
-			} else {
-				code = http.StatusInternalServerError
-			}
+			code = getHttpCodeFromError(err)
 		}
 	} else {
 		var products []models.Product
@@ -147,10 +142,8 @@ func (srv *ProductServer) deleteProductWithURL(ctx *gin.Context) {
 	SKU := ctx.Param("SKU")
 	if err := srv.db.DeleteProductBySKU(SKU); err == nil {
 		ctx.JSON(http.StatusOK, gin.H{})
-	} else if err == DB.ProductNotFoundError {
-		ctx.JSON(http.StatusNotFound, models.ResponseError{err.Error()})
 	} else {
-		ctx.JSON(http.StatusInternalServerError, models.ResponseError{err.Error()})
+		ctx.JSON(getHttpCodeFromError(err), err.Error())
 	}
 }
 
@@ -167,27 +160,19 @@ func (srv *ProductServer) deleteProductWithURL(ctx *gin.Context) {
 func (srv *ProductServer) deleteProductWithParam(ctx *gin.Context) {
 	var errMsg string
 	code := http.StatusOK
-	prSKU, prId, err := getSKUandIDFromUrl(ctx)
+	prSKU, prId, err := getSKUAndIDFromUrl(ctx)
 	if err != nil {
 		errMsg = err.Error()
 		code = http.StatusBadRequest
 	} else if prSKU != "" {
 		if err := srv.db.DeleteProductBySKU(prSKU); err != nil {
 			errMsg = err.Error()
-			if err == DB.ProductNotFoundError {
-				code = http.StatusNotFound
-			} else {
-				code = http.StatusInternalServerError
-			}
+			code = getHttpCodeFromError(err)
 		}
 	} else if prId != 0 {
 		if err := srv.db.DeleteProductById(prId); err != nil {
 			errMsg = err.Error()
-			if err == DB.ProductNotFoundError {
-				code = http.StatusNotFound
-			} else {
-				code = http.StatusInternalServerError
-			}
+			code = getHttpCodeFromError(err)
 		}
 	} else {
 		errMsg = "Id or SKU of deleting product must be specified"
@@ -223,12 +208,10 @@ func (srv *ProductServer) updateProductWithURL(ctx *gin.Context) {
 	}
 	if product, err := srv.db.UpdateProductBySKU(SKU, *newProduct); err == nil {
 		ctx.JSON(http.StatusOK, models.ResponseErrorProduct{"", *product})
-	} else if err == DB.ProductNotFoundError {
-		ctx.JSON(http.StatusNotFound, models.ResponseError{err.Error()})
 	} else if err == DB.ProductAlreadyExistsError {
 		ctx.JSON(http.StatusBadRequest, models.ResponseErrorProduct{err.Error(), *product})
 	} else {
-		ctx.JSON(http.StatusInternalServerError, models.ResponseError{err.Error()})
+		ctx.JSON(getHttpCodeFromError(err), models.ResponseError{err.Error()})
 	}
 }
 
@@ -256,31 +239,19 @@ func (srv *ProductServer) updateProductWithParam(ctx *gin.Context) {
 	var errMsg string
 	prod := models.EmptyProduct()
 	code := http.StatusOK
-	prSKU, prId, err := getSKUandIDFromUrl(ctx)
+	prSKU, prId, err := getSKUAndIDFromUrl(ctx)
 	if err != nil {
 		errMsg = err.Error()
 		code = http.StatusBadRequest
 	} else if prSKU != "" {
 		if prod, err = srv.db.UpdateProductBySKU(prSKU, *newProduct); err != nil {
 			errMsg = err.Error()
-			if err == DB.ProductNotFoundError {
-				code = http.StatusNotFound
-			} else if err == DB.ProductAlreadyExistsError {
-				code = http.StatusBadRequest
-			} else {
-				code = http.StatusInternalServerError
-			}
+			code = getHttpCodeFromError(err)
 		}
 	} else if prId != 0 {
 		if prod, err = srv.db.UpdateProductById(prId, *newProduct); err != nil {
 			errMsg = err.Error()
-			if err == DB.ProductNotFoundError {
-				code = http.StatusNotFound
-			} else if err == DB.ProductAlreadyExistsError {
-				code = http.StatusBadRequest
-			} else {
-				code = http.StatusInternalServerError
-			}
+			code = getHttpCodeFromError(err)
 		}
 	} else {
 		errMsg = "Id or SKU of editing product must be specified"
@@ -296,7 +267,7 @@ func (srv *ProductServer) updateProductWithParam(ctx *gin.Context) {
 	}
 }
 
-func getSKUandIDFromUrl(ctx *gin.Context) (string, int64, error) {
+func getSKUAndIDFromUrl(ctx *gin.Context) (string, int64, error) {
 	if prSKU, ok := ctx.GetQuery("sku"); ok {
 		return prSKU, 0, nil
 	} else if prIdStr, ok := ctx.GetQuery("id"); ok {
@@ -307,5 +278,13 @@ func getSKUandIDFromUrl(ctx *gin.Context) (string, int64, error) {
 		}
 	} else {
 		return "", 0, nil
+	}
+}
+
+func getHttpCodeFromError(err error) int {
+	if code, ok := errorsToHttpStatusCode[err]; ok {
+		return code
+	} else {
+		return http.StatusInternalServerError
 	}
 }
