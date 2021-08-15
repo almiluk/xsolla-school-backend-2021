@@ -129,7 +129,7 @@ paths:
           description: ""
         "500":
           description: ""
-      summary: return headers as similar get request
+      summary: return headers as a similar get request
     post:
       consumes:
       - application/json
@@ -142,7 +142,7 @@ paths:
           $ref: '#/definitions/InputProduct'
       responses:
         "201":
-          description: added product
+          description: Product has been created
           schema:
             $ref: '#/definitions/Product'
         "400":
@@ -178,7 +178,7 @@ paths:
         type: integer
       responses:
         "200":
-          description: new product
+          description: Product has been updated
           schema:
             $ref: '#/definitions/Product'
         "400":
@@ -255,7 +255,7 @@ paths:
           description: ""
         "500":
           description: ""
-      summary: return headers as similar get request
+      summary: return headers as a similar get request
     put:
       consumes:
       - application/json
@@ -273,7 +273,7 @@ paths:
         type: string
       responses:
         "200":
-          description: added product
+          description: Product has been updated
           schema:
             $ref: '#/definitions/Product'
         "400":

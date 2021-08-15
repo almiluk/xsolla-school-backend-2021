@@ -113,7 +113,7 @@ var doc = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "new product",
+                        "description": "Product has been updated",
                         "schema": {
                             "$ref": "#/definitions/Product"
                         }
@@ -162,7 +162,7 @@ var doc = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "added product",
+                        "description": "Product has been created",
                         "schema": {
                             "$ref": "#/definitions/Product"
                         }
@@ -229,7 +229,7 @@ var doc = `{
                 }
             },
             "head": {
-                "summary": "return headers as similar get request",
+                "summary": "return headers as a similar get request",
                 "parameters": [
                     {
                         "type": "string",
@@ -333,7 +333,7 @@ var doc = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "added product",
+                        "description": "Product has been updated",
                         "schema": {
                             "$ref": "#/definitions/Product"
                         }
@@ -394,7 +394,7 @@ var doc = `{
                 }
             },
             "head": {
-                "summary": "return headers as similar get request",
+                "summary": "return headers as a similar get request",
                 "parameters": [
                     {
                         "type": "string",

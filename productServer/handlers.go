@@ -22,7 +22,7 @@ var errorsToHttpStatusCode = map[error]int{
 // @Accept json
 // @Produces json
 // @Param product body models.InputProduct true "adding product"
-// @Success 201 {object} models.Product "added product"
+// @Success 201 {object} models.Product "Product has been created"
 // @Failure 400 {object} string
 // @Failure 409 {object} string
 // @Failure 500 {object} string
@@ -89,7 +89,7 @@ func (srv *ProductServer) getProductWithParam(ctx *gin.Context) {
 }
 
 // headProductsWithURL godoc
-// @Summary return headers as similar get request
+// @Summary return headers as a similar get request
 // @Param SKU path string true "SKU of searching product"
 // @Success 200
 // @Failure 404
@@ -106,7 +106,7 @@ func (srv *ProductServer) headProductsWithURL(ctx *gin.Context) {
 }
 
 // headProductsWithParam godoc
-// @Summary return headers as similar get request
+// @Summary return headers as a similar get request
 // @Param sku query string false "SKU of searching product"
 // @Param id query int false "Id of searching product"
 // @Param groupSize query int false "Size of requesting products group"
@@ -149,7 +149,7 @@ func (srv *ProductServer) deleteProductWithURL(ctx *gin.Context) {
 // @Param id query int false "Id of deleting product"
 // @Success 204
 // @Failure 400 {object} string
-// @Failure 404 {object} string"Product with specified SKU or Id not found"
+// @Failure 404 {object} string "Product with specified SKU or Id not found"
 // @Failure 500 {object} string
 // @Router /products [delete]
 func (srv *ProductServer) deleteProductWithParam(ctx *gin.Context) {
@@ -187,7 +187,7 @@ func (srv *ProductServer) deleteProductWithParam(ctx *gin.Context) {
 // @Produces json
 // @Param product body models.InputProduct true "new product"
 // @Param SKU path string true "SKU of updating product"
-// @Success 200 {object} models.Product "added product"
+// @Success 200 {object} models.Product "Product has been updated"
 // @Failure 400 {object} string
 // @Failure 404 {object} string
 // @Failure 409 {object} string
@@ -221,7 +221,7 @@ func (srv *ProductServer) updateProductWithURL(ctx *gin.Context) {
 // @Param product body models.InputProduct true "new product"
 // @Param sku query string false "SKU of updating product"
 // @Param id query int false "Id of updating product"
-// @Success 200 {object} models.Product "new product"
+// @Success 200 {object} models.Product "Product has been updated"
 // @Failure 400 {object} string
 // @Failure 404 {object} string
 // @Failure 409 {object} string
