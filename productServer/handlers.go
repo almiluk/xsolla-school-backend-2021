@@ -3,6 +3,7 @@ package productServer
 import (
 	"XsollaSchoolBE/DB"
 	"XsollaSchoolBE/models"
+	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -22,15 +23,15 @@ var errorsToHttpStatusCode = map[error]int{
 // @Produces json
 // @Param product body models.InputProduct true "adding product"
 // @Success 201 {object} models.Product "added product"
-// @Failure 400 {object} models.ResponseErrorProduct
-// @Failure 500 {object} models.ResponseError
+// @Failure 400 {object} string
+// @Failure 500 {object} string
 // @Router /products [post]
 func (srv *ProductServer) addProduct(ctx *gin.Context) {
 	// TODO: More informative message about unmarshal error
 	newProduct := models.EmptyInputProduct()
 	err := ctx.ShouldBindJSON(newProduct)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, models.ResponseErrorProduct{"json format error: " + err.Error(), *models.EmptyProduct()})
+		ctx.String(http.StatusBadRequest, "json format error: "+err.Error())
 		return
 	}
 
@@ -38,9 +39,10 @@ func (srv *ProductServer) addProduct(ctx *gin.Context) {
 		ctx.Header("Location", "/products?id="+strconv.FormatInt(product.Id, 10))
 		ctx.JSON(http.StatusCreated, product)
 	} else if err == DB.ProductAlreadyExistsError {
-		ctx.JSON(http.StatusBadRequest, models.ResponseErrorProduct{err.Error(), *product})
+		data, _ := json.Marshal(product)
+		ctx.String(http.StatusBadRequest, err.Error()+": "+string(data))
 	} else {
-		ctx.JSON(http.StatusInternalServerError, models.ResponseError{err.Error()})
+		ctx.String(http.StatusInternalServerError, err.Error())
 	}
 }
 
@@ -49,8 +51,8 @@ func (srv *ProductServer) addProduct(ctx *gin.Context) {
 // @Produces json
 // @Param SKU path string true "SKU of searching product"
 // @Success 200 {array} models.Product
-// @Failure 404 {object} models.ResponseError "product with such SKU does not exist"
-// @Failure 500 {object} models.ResponseError
+// @Failure 404 {object} string "product with such SKU does not exist"
+// @Failure 500 {object} string
 // @Router /products/{SKU} [get]
 func (srv *ProductServer) getProductWithURL(ctx *gin.Context) {
 	SKU := ctx.Param("SKU")
@@ -58,7 +60,7 @@ func (srv *ProductServer) getProductWithURL(ctx *gin.Context) {
 	if err == nil {
 		ctx.JSON(http.StatusOK, []*models.Product{foundProduct})
 	} else {
-		ctx.JSON(getHttpCodeFromError(err), models.ResponseError{err.Error()})
+		ctx.String(getHttpCodeFromError(err), err.Error())
 	}
 }
 
@@ -72,16 +74,16 @@ func (srv *ProductServer) getProductWithURL(ctx *gin.Context) {
 // @Param groupSize query int false "Size of requesting products group"
 // @Param groupNum query int false "Number of requesting products group"
 // @Success 200 {array} models.Product
-// @Failure 404 {object} models.ResponseError "Product with specified SKU or Id not found"
-// @Failure 400 {object} models.ResponseError
-// @Failure 500 {object} models.ResponseError
+// @Failure 404 {object} string "Product with specified SKU or Id not found"
+// @Failure 400 {object} string
+// @Failure 500 {object} string
 // @Router /products [get]
 func (srv *ProductServer) getProductWithParam(ctx *gin.Context) {
 	code, products, err := srv.getProductsFromDBWithParam(ctx)
 	if err == nil {
 		ctx.JSON(code, products)
 	} else {
-		ctx.JSON(code, models.ResponseError{err.Error()})
+		ctx.String(code, err.Error())
 	}
 }
 
@@ -98,7 +100,7 @@ func (srv *ProductServer) headProductsWithURL(ctx *gin.Context) {
 	if err == nil {
 		ctx.JSON(http.StatusOK, "")
 	} else {
-		ctx.JSON(getHttpCodeFromError(err), "")
+		ctx.String(getHttpCodeFromError(err), "")
 	}
 }
 
@@ -118,7 +120,7 @@ func (srv *ProductServer) headProductsWithParam(ctx *gin.Context) {
 	if err == nil {
 		ctx.JSON(code, "")
 	} else {
-		ctx.JSON(code, "")
+		ctx.String(code, "")
 	}
 }
 
@@ -127,15 +129,15 @@ func (srv *ProductServer) headProductsWithParam(ctx *gin.Context) {
 // @Produces json
 // @Param SKU path string true "SKU of deleting product"
 // @Success 204
-// @Failure 404 {object} models.ResponseError "product with such SKU does not exist"
-// @Failure 500 {object} models.ResponseError
+// @Failure 404 {object} string "product with such SKU does not exist"
+// @Failure 500 {object} string
 // @Router /products/{SKU} [delete]
 func (srv *ProductServer) deleteProductWithURL(ctx *gin.Context) {
 	SKU := ctx.Param("SKU")
 	if err := srv.db.DeleteProductBySKU(SKU); err == nil {
 		ctx.JSON(http.StatusNoContent, gin.H{})
 	} else {
-		ctx.JSON(getHttpCodeFromError(err), err.Error())
+		ctx.String(getHttpCodeFromError(err), err.Error())
 	}
 }
 
@@ -145,9 +147,9 @@ func (srv *ProductServer) deleteProductWithURL(ctx *gin.Context) {
 // @Param sku query string false "SKU of deleting product"
 // @Param id query int false "Id of deleting product"
 // @Success 204
-// @Failure 404 {object} models.ResponseError "Product with specified SKU or Id not found"
-// @Failure 400 {object} models.ResponseError
-// @Failure 500 {object} models.ResponseError
+// @Failure 404 {object} string"Product with specified SKU or Id not found"
+// @Failure 400 {object} string
+// @Failure 500 {object} string
 // @Router /products [delete]
 func (srv *ProductServer) deleteProductWithParam(ctx *gin.Context) {
 	var errMsg string
@@ -174,7 +176,7 @@ func (srv *ProductServer) deleteProductWithParam(ctx *gin.Context) {
 	if errMsg == "" {
 		ctx.String(code, "")
 	} else {
-		ctx.JSON(code, models.ResponseError{errMsg})
+		ctx.String(code, errMsg)
 	}
 }
 
@@ -185,9 +187,9 @@ func (srv *ProductServer) deleteProductWithParam(ctx *gin.Context) {
 // @Param product body models.InputProduct true "new product"
 // @Param SKU path string true "SKU of updating product"
 // @Success 200 {object} models.Product "added product"
-// @Failure 400 {object} models.ResponseErrorProduct
-// @Failure 404 {object} models.ResponseError
-// @Failure 500 {object} models.ResponseError
+// @Failure 400 {object} string
+// @Failure 404 {object} string
+// @Failure 500 {object} string
 // @Router /products/{SKU} [PUT]
 func (srv *ProductServer) updateProductWithURL(ctx *gin.Context) {
 	// TODO: More informative message about unmarshal error
@@ -195,15 +197,16 @@ func (srv *ProductServer) updateProductWithURL(ctx *gin.Context) {
 	newProduct := models.EmptyInputProduct()
 	err := ctx.ShouldBindJSON(newProduct)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, models.ResponseErrorProduct{"json format error: " + err.Error(), *models.EmptyProduct()})
+		ctx.String(http.StatusBadRequest, "json format error: "+err.Error(), *models.EmptyProduct())
 		return
 	}
 	if product, err := srv.db.UpdateProductBySKU(SKU, *newProduct); err == nil {
-		ctx.JSON(http.StatusOK, models.ResponseErrorProduct{"", *product})
+		ctx.JSON(http.StatusOK, *product)
 	} else if err == DB.ProductAlreadyExistsError {
-		ctx.JSON(http.StatusBadRequest, models.ResponseErrorProduct{err.Error(), *product})
+		data, _ := json.Marshal(product)
+		ctx.String(http.StatusBadRequest, err.Error()+": "+string(data))
 	} else {
-		ctx.JSON(getHttpCodeFromError(err), models.ResponseError{err.Error()})
+		ctx.String(getHttpCodeFromError(err), err.Error())
 	}
 }
 
@@ -215,16 +218,16 @@ func (srv *ProductServer) updateProductWithURL(ctx *gin.Context) {
 // @Param sku query string false "SKU of updating product"
 // @Param id query int false "Id of updating product"
 // @Success 200 {object} models.Product "new product"
-// @Failure 400 {object} models.ResponseErrorProduct
-// @Failure 404 {object} models.ResponseError
-// @Failure 500 {object} models.ResponseError
+// @Failure 400 {object} string
+// @Failure 404 {object} string
+// @Failure 500 {object} string
 // @Router /products [put]
 func (srv *ProductServer) updateProductWithParam(ctx *gin.Context) {
 	// TODO: More informative message about unmarshal error
 	newProduct := models.EmptyInputProduct()
 	err := ctx.ShouldBindJSON(newProduct)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, models.ResponseErrorProduct{"json format error: " + err.Error(), *models.EmptyProduct()})
+		ctx.String(http.StatusBadRequest, "json format error: "+err.Error(), *models.EmptyProduct())
 		return
 	}
 
@@ -251,11 +254,12 @@ func (srv *ProductServer) updateProductWithParam(ctx *gin.Context) {
 	}
 
 	if code == http.StatusOK {
-		ctx.JSON(code, models.ResponseErrorProduct{"", *prod})
+		ctx.JSON(code, *prod)
 	} else if code == http.StatusBadRequest {
-		ctx.JSON(code, models.ResponseErrorProduct{errMsg, *prod})
+		data, _ := json.Marshal(prod)
+		ctx.String(http.StatusBadRequest, errMsg+": "+string(data))
 	} else {
-		ctx.JSON(code, models.ResponseError{errMsg})
+		ctx.String(code, errMsg)
 	}
 }
 

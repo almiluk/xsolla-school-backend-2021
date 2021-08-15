@@ -66,19 +66,19 @@ var doc = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     },
                     "404": {
                         "description": "Product with specified SKU or Id not found",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     }
                 }
@@ -121,19 +121,19 @@ var doc = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ResponseErrorProduct"
+                            "type": "string"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     }
                 }
@@ -164,13 +164,13 @@ var doc = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ResponseErrorProduct"
+                            "type": "string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     }
                 }
@@ -199,19 +199,19 @@ var doc = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     },
                     "404": {
                         "description": "Product with specified SKU or Id not found",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     }
                 }
@@ -285,13 +285,13 @@ var doc = `{
                     "404": {
                         "description": "product with such SKU does not exist",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     }
                 }
@@ -329,19 +329,19 @@ var doc = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ResponseErrorProduct"
+                            "type": "string"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     }
                 }
@@ -364,13 +364,13 @@ var doc = `{
                     "404": {
                         "description": "product with such SKU does not exist",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     }
                 }
@@ -435,28 +435,6 @@ var doc = `{
                 },
                 "type": {
                     "type": "string"
-                }
-            }
-        },
-        "ResponseError": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "description": "occurred error",
-                    "type": "string"
-                }
-            }
-        },
-        "ResponseErrorProduct": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "description": "occurred error",
-                    "type": "string"
-                },
-                "product": {
-                    "description": "product with same SKU as the product in request in case of collision",
-                    "$ref": "#/definitions/Product"
                 }
             }
         }

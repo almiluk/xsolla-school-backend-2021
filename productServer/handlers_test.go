@@ -1,7 +1,6 @@
 package productServer
 
 import (
-	"XsollaSchoolBE/DB"
 	"XsollaSchoolBE/models"
 	"bytes"
 	"context"
@@ -13,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"testing"
 )
 
@@ -81,15 +79,9 @@ func TestIncorrectPost(t *testing.T) {
 		bytes.NewBuffer(jsonProduct),
 	)
 	if err == nil {
-		respData := make(map[string]interface{})
+		//respData := make(map[string]interface{})
 		if resp.StatusCode != http.StatusBadRequest {
-			t.Error("not 400 code for incorrect post request")
-		} else if err = json.NewDecoder(resp.Body).Decode(&respData); err != nil {
-			t.Error("response format error, response ", fmt.Sprint(resp.Body))
-		} else if errMsg, ok := respData["error"]; !ok {
-			t.Error("no error filed in the response, response: ", respData)
-		} else if !strings.HasPrefix(errMsg.(string), "json format error") {
-			t.Error("wrong error message: ", errMsg)
+			t.Error("not 400 code for incorrect post request: ", resp.StatusCode)
 		}
 		resp.Body.Close()
 	} else {
@@ -105,15 +97,8 @@ func TestIncorrectPost(t *testing.T) {
 		t.Error(err)
 	} else {
 		defer resp.Body.Close()
-		respData := make(map[string]interface{})
 		if resp.StatusCode != http.StatusBadRequest {
-			t.Error("not 400 code for incorrect post request")
-		} else if err = json.NewDecoder(resp.Body).Decode(&respData); err != nil {
-			t.Error("response format error, response ", fmt.Sprint(resp.Body))
-		} else if errMsg, ok := respData["error"]; !ok {
-			t.Error("no error filed in the response, response: ", respData)
-		} else if errMsg != DB.ProductAlreadyExistsError.Error() {
-			t.Error("wrong error message: ", errMsg)
+			t.Error("not 400 code for incorrect post request: ", resp.StatusCode)
 		}
 	}
 }
@@ -359,15 +344,8 @@ func TestIncorrectUpdate(t *testing.T) {
 	} else if resp, err := client.Do(request); err != nil {
 		t.Error(err)
 	} else {
-		respData := make(map[string]interface{})
 		if resp.StatusCode != http.StatusBadRequest {
 			t.Error("not 400 code for incorrect put request: ", resp.StatusCode)
-		} else if err = json.NewDecoder(resp.Body).Decode(&respData); err != nil {
-			t.Error("response format error, response ", fmt.Sprint(resp.Body))
-		} else if errMsg, ok := respData["error"]; !ok {
-			t.Error("no error filed in the response, response: ", respData)
-		} else if errMsg != DB.ProductAlreadyExistsError.Error() {
-			t.Error("wrong error message: ", errMsg)
 		}
 		resp.Body.Close()
 	}

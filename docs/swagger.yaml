@@ -24,21 +24,6 @@ definitions:
       type:
         type: string
     type: object
-  ResponseError:
-    properties:
-      error:
-        description: occurred error
-        type: string
-    type: object
-  ResponseErrorProduct:
-    properties:
-      error:
-        description: occurred error
-        type: string
-      product:
-        $ref: '#/definitions/Product'
-        description: product with same SKU as the product in request in case of collision
-    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -65,15 +50,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/ResponseError'
+            type: string
         "404":
           description: Product with specified SKU or Id not found
           schema:
-            $ref: '#/definitions/ResponseError'
+            type: string
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ResponseError'
+            type: string
       summary: delete product with specific SKU or Id with it in URL params
     get:
       description: |-
@@ -106,15 +91,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/ResponseError'
+            type: string
         "404":
           description: Product with specified SKU or Id not found
           schema:
-            $ref: '#/definitions/ResponseError'
+            type: string
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ResponseError'
+            type: string
       summary: get product with specific SKU or Id with it in URL params or all of
         the products, or part of them
     head:
@@ -163,11 +148,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/ResponseErrorProduct'
+            type: string
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ResponseError'
+            type: string
       summary: add new product
     put:
       consumes:
@@ -195,15 +180,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/ResponseErrorProduct'
+            type: string
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/ResponseError'
+            type: string
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ResponseError'
+            type: string
       summary: update product with specific SKU or Id with it in URL params
   /products/{SKU}:
     delete:
@@ -219,11 +204,11 @@ paths:
         "404":
           description: product with such SKU does not exist
           schema:
-            $ref: '#/definitions/ResponseError'
+            type: string
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ResponseError'
+            type: string
       summary: delete product with specific SKU with SKU in URL path
     get:
       parameters:
@@ -242,11 +227,11 @@ paths:
         "404":
           description: product with such SKU does not exist
           schema:
-            $ref: '#/definitions/ResponseError'
+            type: string
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ResponseError'
+            type: string
       summary: get product with specific SKU with SKU in URL path
     head:
       parameters:
@@ -286,14 +271,14 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/ResponseErrorProduct'
+            type: string
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/ResponseError'
+            type: string
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ResponseError'
+            type: string
       summary: update product with specific SKU with SKU in URL path
 swagger: "2.0"

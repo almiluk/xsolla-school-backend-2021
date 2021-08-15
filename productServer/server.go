@@ -37,15 +37,15 @@ func (srv *ProductServer) initHandlers() {
 	router.GET("/", func(ctx *gin.Context) { ctx.JSON(200, gin.H{"Status": "It is working"}) })
 	apiV1Group := router.Group("api/v1/products")
 	{
-		apiV1Group.POST("/", srv.addProduct)
+		apiV1Group.POST("", srv.addProduct)
 		apiV1Group.GET("/:SKU", srv.getProductWithURL)
-		apiV1Group.GET("/", srv.getProductWithParam)
+		apiV1Group.GET("", srv.getProductWithParam)
 		apiV1Group.HEAD("/:SKU", srv.headProductsWithURL)
-		apiV1Group.HEAD("/", srv.headProductsWithParam)
+		apiV1Group.HEAD("", srv.headProductsWithParam)
 		apiV1Group.DELETE("/:SKU", srv.deleteProductWithURL)
-		apiV1Group.DELETE("/", srv.deleteProductWithParam)
+		apiV1Group.DELETE("", srv.deleteProductWithParam)
 		apiV1Group.PUT("/:SKU", srv.updateProductWithURL)
-		apiV1Group.PUT("/", srv.updateProductWithParam)
+		apiV1Group.PUT("", srv.updateProductWithParam)
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	srv.Handler = router
