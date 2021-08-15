@@ -97,7 +97,7 @@ func TestIncorrectPost(t *testing.T) {
 		t.Error(err)
 	} else {
 		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusBadRequest {
+		if resp.StatusCode != http.StatusConflict {
 			t.Error("not 400 code for incorrect post request: ", resp.StatusCode)
 		}
 	}
@@ -344,7 +344,7 @@ func TestIncorrectUpdate(t *testing.T) {
 	} else if resp, err := client.Do(request); err != nil {
 		t.Error(err)
 	} else {
-		if resp.StatusCode != http.StatusBadRequest {
+		if resp.StatusCode != http.StatusConflict {
 			t.Error("not 400 code for incorrect put request: ", resp.StatusCode)
 		}
 		resp.Body.Close()
