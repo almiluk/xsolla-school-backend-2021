@@ -35,13 +35,18 @@ func Run(addr string, DBfilename string) (*ProductServer, error) {
 func (srv *ProductServer) initHandlers() {
 	router := gin.Default()
 	router.GET("/", func(ctx *gin.Context) { ctx.JSON(200, gin.H{"Status": "It is working"}) })
-	router.POST("/products", srv.addProduct)
-	router.GET("/products/:SKU", srv.getProductWithURL)
-	router.GET("/products", srv.getProductWithParam)
-	router.DELETE("/products/:SKU", srv.deleteProductWithURL)
-	router.DELETE("/products", srv.deleteProductWithParam)
-	router.PUT("/products/:SKU", srv.updateProductWithURL)
-	router.PUT("/products", srv.updateProductWithParam)
+	v1ProductsGroup := router.Group("api/v1/products")
+	{
+		v1ProductsGroup.POST("", srv.addProduct)
+		v1ProductsGroup.GET("/:SKU", srv.getProductWithURL)
+		v1ProductsGroup.GET("", srv.getProductWithParam)
+		v1ProductsGroup.HEAD("/:SKU", srv.headProductsWithURL)
+		v1ProductsGroup.HEAD("", srv.headProductsWithParam)
+		v1ProductsGroup.DELETE("/:SKU", srv.deleteProductWithURL)
+		v1ProductsGroup.DELETE("", srv.deleteProductWithParam)
+		v1ProductsGroup.PUT("/:SKU", srv.updateProductWithURL)
+		v1ProductsGroup.PUT("", srv.updateProductWithParam)
+	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	srv.Handler = router
 }

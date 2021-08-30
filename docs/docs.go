@@ -66,19 +66,19 @@ var doc = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     },
                     "404": {
                         "description": "Product with specified SKU or Id not found",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     }
                 }
@@ -113,7 +113,7 @@ var doc = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "new product",
+                        "description": "Product has been updated",
                         "schema": {
                             "$ref": "#/definitions/Product"
                         }
@@ -121,19 +121,25 @@ var doc = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ResponseErrorProduct"
+                            "type": "string"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     }
                 }
@@ -155,8 +161,8 @@ var doc = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "added product",
+                    "201": {
+                        "description": "Product has been created",
                         "schema": {
                             "$ref": "#/definitions/Product"
                         }
@@ -164,13 +170,19 @@ var doc = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ResponseErrorProduct"
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     }
                 }
@@ -193,26 +205,69 @@ var doc = `{
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "204": {
                         "description": ""
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     },
                     "404": {
                         "description": "Product with specified SKU or Id not found",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
+                    }
+                }
+            },
+            "head": {
+                "summary": "return headers as a similar get request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "SKU of searching product",
+                        "name": "sku",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Id of searching product",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Size of requesting products group",
+                        "name": "groupSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of requesting products group",
+                        "name": "groupNum",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": ""
+                    },
+                    "404": {
+                        "description": ""
+                    },
+                    "500": {
+                        "description": ""
                     }
                 }
             }
@@ -242,13 +297,13 @@ var doc = `{
                     "404": {
                         "description": "product with such SKU does not exist",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     }
                 }
@@ -272,12 +327,13 @@ var doc = `{
                         "type": "string",
                         "description": "SKU of updating product",
                         "name": "SKU",
-                        "in": "path"
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "added product",
+                        "description": "Product has been updated",
                         "schema": {
                             "$ref": "#/definitions/Product"
                         }
@@ -285,19 +341,25 @@ var doc = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ResponseErrorProduct"
+                            "type": "string"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     }
                 }
@@ -314,20 +376,43 @@ var doc = `{
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "204": {
                         "description": ""
                     },
                     "404": {
                         "description": "product with such SKU does not exist",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ResponseError"
+                            "type": "string"
                         }
+                    }
+                }
+            },
+            "head": {
+                "summary": "return headers as a similar get request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "SKU of searching product",
+                        "name": "SKU",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "404": {
+                        "description": ""
+                    },
+                    "500": {
+                        "description": ""
                     }
                 }
             }
@@ -370,28 +455,6 @@ var doc = `{
                     "type": "string"
                 }
             }
-        },
-        "ResponseError": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "description": "occurred error",
-                    "type": "string"
-                }
-            }
-        },
-        "ResponseErrorProduct": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "description": "occurred error",
-                    "type": "string"
-                },
-                "product": {
-                    "description": "product with same SKU as the product in request in case of collision",
-                    "$ref": "#/definitions/Product"
-                }
-            }
         }
     }
 }`
@@ -409,7 +472,7 @@ type swaggerInfo struct {
 var SwaggerInfo = swaggerInfo{
 	Version:     "0.1",
 	Host:        "localhost:8080",
-	BasePath:    "/",
+	BasePath:    "/api/v1/",
 	Schemes:     []string{},
 	Title:       "almilukXsollaSchoolBE",
 	Description: "This is a service for managing products on internet marketplace",
